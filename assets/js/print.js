@@ -444,8 +444,8 @@ window.PrintDoc = {
 
     <!-- Pie de página -->
     <footer class="doc-footer">
-      <span><strong>ClienteAPP</strong> · CRM Casas Prefabricadas</span>
-      <span>Documento generado el ${_esc(fechaDoc)}</span>
+      <span><strong>ClienteAPP 2.0</strong> · Aplicación de CRM desarrollada por <strong>OracleTech</strong> (George Moreno)</span>
+      <span>Generado el ${_esc(fechaDoc)}</span>
     </footer>
 
   </div>

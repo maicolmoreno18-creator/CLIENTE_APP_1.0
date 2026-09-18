@@ -194,7 +194,7 @@ window.Configuracion = {
                   </div>
                   <div class="card-body p-0">
                     <div class="list-group list-group-flush">
-                      ${this._infoRow('bi-app', 'Aplicación', 'ClienteAPP v1.0.0', 'text')}
+                      ${this._infoRow('bi-app', 'Aplicación', 'ClienteAPP v2.0', 'text')}
                       ${this._infoRow('bi-person-badge', 'Usuario', nombreGuardado, 'badge-primary')}
                       ${this._infoRow('bi-hdd-fill', 'Almacenamiento', 'Tu computador (Local)', 'badge-success')}
                       ${this._infoRow('bi-database', 'Motor de datos', 'IndexedDB — Sin servidor', 'badge-info')}

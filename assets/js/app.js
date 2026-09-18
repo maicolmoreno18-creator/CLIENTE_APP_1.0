@@ -95,6 +95,34 @@ window.Expediente = {
     return `
       <div class="row g-4">
 
+        <!-- Fila superior: botones de acción siempre visibles -->
+        <div class="col-12">
+          <div class="d-flex flex-wrap align-items-center gap-2 p-3 rounded-3"
+               style="background:#f8fafc;border:1.5px solid #e2e8f0;">
+            <span class="text-muted small fw-semibold me-1">
+              <i class="bi bi-lightning-charge me-1 text-primary"></i>Acciones:
+            </span>
+            <button class="btn btn-sm btn-outline-success fw-semibold"
+                    onclick="Proyectos.abrirModalEditar('${proyecto.id}')">
+              <i class="bi bi-pencil me-1"></i>Editar Proyecto
+            </button>
+            <button class="btn btn-sm btn-outline-primary fw-semibold"
+                    onclick="PrintDoc.imprimir('${proyecto.id}', '${cliente.id}')"
+                    title="Imprimir especificaciones técnicas (sin precios)">
+              <i class="bi bi-printer me-1"></i>Imprimir especificaciones
+            </button>
+            <button class="btn btn-sm btn-outline-danger fw-semibold"
+                    data-pdf-btn="${proyecto.id}"
+                    onclick="PrintDoc.descargarPDF('${proyecto.id}', '${cliente.id}')"
+                    title="Descargar especificaciones en PDF (sin precios)">
+              <i class="bi bi-file-earmark-pdf me-1"></i>Descargar PDF
+            </button>
+            <small class="text-muted ms-auto align-self-center" style="font-size:11px;">
+              <i class="bi bi-calendar me-1"></i>Registrado: ${UI.formatDate(proyecto.createdAt)}
+            </small>
+          </div>
+        </div>
+
         <!-- Columna izquierda: detalles -->
         <div class="${firmado ? 'col-md-6' : 'col-12'}">
           <div class="d-flex align-items-center justify-content-between mb-3">
@@ -156,23 +184,9 @@ window.Expediente = {
               <strong>Firmado</strong> y luego edita el proyecto.
             </div>` : ''}
 
-          <div class="mt-3 d-flex flex-wrap gap-2">
-            <button class="btn btn-sm btn-outline-success" onclick="Proyectos.abrirModalEditar('${proyecto.id}')">
-              <i class="bi bi-pencil me-1"></i>Editar Proyecto
-            </button>
-            <button class="btn btn-sm btn-outline-primary"
-                    onclick="PrintDoc.imprimir('${proyecto.id}', '${cliente.id}')"
-                    title="Imprimir especificaciones (sin precios)">
-              <i class="bi bi-printer me-1"></i>Imprimir especificaciones
-            </button>
-            <button class="btn btn-sm btn-outline-secondary"
-                    data-pdf-btn="${proyecto.id}"
-                    onclick="PrintDoc.descargarPDF('${proyecto.id}', '${cliente.id}')"
-                    title="Descargar especificaciones en PDF (sin precios)">
-              <i class="bi bi-file-earmark-pdf me-1"></i>Descargar PDF
-            </button>
-            <small class="text-muted align-self-center">
-              Registrado: ${UI.formatDate(proyecto.createdAt)}
+          <div class="mt-3 d-flex gap-2">
+            <small class="text-muted align-self-center" style="font-size:11px;">
+              <i class="bi bi-info-circle me-1"></i>Usa los botones de arriba para editar o imprimir.
             </small>
           </div>
         </div>
