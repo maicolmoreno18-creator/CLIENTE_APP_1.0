@@ -181,8 +181,8 @@ window.PrintDoc = {
       align-items: flex-start;
       justify-content: space-between;
       border-bottom: 3px solid #1a3c5e;
-      padding-bottom: 16px;
-      margin-bottom: 22px;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
       gap: 16px;
     }
     .doc-brand {
@@ -227,8 +227,8 @@ window.PrintDoc = {
       background: linear-gradient(135deg, #1a3c5e 0%, #2d6a9f 100%);
       color: white;
       border-radius: 10px;
-      padding: 16px 22px;
-      margin-bottom: 22px;
+      padding: 12px 20px;
+      margin-bottom: 16px;
     }
     .doc-title-block h1 {
       font-size: 20px;
@@ -246,7 +246,7 @@ window.PrintDoc = {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 12px;
-      margin-bottom: 22px;
+      margin-bottom: 14px;
     }
     .info-card {
       background: #f0f4f8;
@@ -271,7 +271,7 @@ window.PrintDoc = {
 
     /* ── Secciones ── */
     .doc-section {
-      margin-bottom: 22px;
+      margin-bottom: 16px;
       page-break-inside: avoid;
     }
     .section-title {
@@ -282,7 +282,7 @@ window.PrintDoc = {
       letter-spacing: 0.8px;
       border-bottom: 1.5px solid #e2e8f0;
       padding-bottom: 6px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -368,8 +368,8 @@ window.PrintDoc = {
 
     /* ── Pie de página ── */
     .doc-footer {
-      margin-top: 30px;
-      padding-top: 12px;
+      margin-top: 20px;
+      padding-top: 10px;
       border-top: 1px solid #e2e8f0;
       display: flex;
       align-items: center;
@@ -378,20 +378,6 @@ window.PrintDoc = {
       color: #94a3b8;
     }
     .doc-footer strong { color: #64748b; }
-
-    /* ── Aviso "Sin valor económico" (solo en pantalla, no imprime) ── */
-    .no-print-notice {
-      background: #eff6ff;
-      border: 1.5px solid #bfdbfe;
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 13px;
-      color: #1e40af;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
 
     /* ── MEDIA PRINT ── */
     @media print {
@@ -408,12 +394,6 @@ window.PrintDoc = {
 </head>
 <body>
   <div class="doc-page">
-
-    <!-- Aviso solo en pantalla -->
-    <div class="no-print-notice">
-      ℹ️ Este documento contiene únicamente las especificaciones técnicas.
-      <strong>No incluye información de precios.</strong>
-    </div>
 
     <!-- Encabezado -->
     <header class="doc-header">
