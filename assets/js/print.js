@@ -160,19 +160,19 @@ window.PrintDoc = {
   <style>
     /* ── Reset y base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 14px; }
+    html { font-size: 17px; }
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
       color: #1a2533;
       background: #fff;
-      line-height: 1.55;
+      line-height: 1.6;
     }
 
     /* ── Página ── */
     .doc-page {
-      max-width: 720px;
+      max-width: 794px;
       margin: 0 auto;
-      padding: 32px 36px 40px;
+      padding: 26px 30px 32px;
     }
 
     /* ── Encabezado ── */
@@ -200,24 +200,24 @@ window.PrintDoc = {
       flex-shrink: 0;
     }
     .doc-brand-name {
-      font-size: 18px;
+      font-size: 22px;
       font-weight: 700;
       color: #1a3c5e;
       letter-spacing: -0.3px;
     }
     .doc-brand-sub {
-      font-size: 11px;
+      font-size: 13px;
       color: #64748b;
       margin-top: 1px;
     }
     .doc-meta {
       text-align: right;
-      font-size: 11px;
+      font-size: 13px;
       color: #64748b;
     }
     .doc-meta strong {
       display: block;
-      font-size: 13px;
+      font-size: 15px;
       color: #1a2533;
       margin-bottom: 2px;
     }
@@ -231,14 +231,14 @@ window.PrintDoc = {
       margin-bottom: 22px;
     }
     .doc-title-block h1 {
-      font-size: 16px;
+      font-size: 20px;
       font-weight: 700;
       margin-bottom: 4px;
       letter-spacing: 0.2px;
     }
     .doc-title-block p {
-      font-size: 11px;
-      opacity: 0.8;
+      font-size: 13px;
+      opacity: 0.85;
     }
 
     /* ── Datos del proyecto ── */
@@ -255,7 +255,7 @@ window.PrintDoc = {
       border-left: 3px solid #2d6a9f;
     }
     .info-card-label {
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.8px;
@@ -263,7 +263,7 @@ window.PrintDoc = {
       margin-bottom: 4px;
     }
     .info-card-value {
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 600;
       color: #1a2533;
       word-break: break-word;
@@ -275,7 +275,7 @@ window.PrintDoc = {
       page-break-inside: avoid;
     }
     .section-title {
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 700;
       color: #1a3c5e;
       text-transform: uppercase;
@@ -287,23 +287,23 @@ window.PrintDoc = {
       align-items: center;
       gap: 6px;
     }
-    .section-icon { font-size: 14px; }
+    .section-icon { font-size: 18px; }
 
     /* ── Tabla de especificaciones ── */
     .spec-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.89rem;
+      font-size: 1rem;
     }
     .spec-table thead tr {
       background: #1a3c5e;
       color: white;
     }
     .spec-table thead th {
-      padding: 9px 14px;
+      padding: 11px 14px;
       text-align: left;
       font-weight: 600;
-      font-size: 11px;
+      font-size: 13px;
       letter-spacing: 0.5px;
       text-transform: uppercase;
     }
@@ -317,7 +317,7 @@ window.PrintDoc = {
       border-bottom: 1px solid #e8edf2;
     }
     .spec-table td {
-      padding: 9px 14px;
+      padding: 11px 14px;
       vertical-align: top;
     }
     .spec-label {
@@ -328,7 +328,7 @@ window.PrintDoc = {
     .empty-note {
       color: #94a3b8;
       font-style: italic;
-      font-size: 12px;
+      font-size: 14px;
       padding: 10px 0;
     }
 
@@ -344,8 +344,8 @@ window.PrintDoc = {
       background: #f0fdf4;
       border: 1.5px solid #86efac;
       border-radius: 20px;
-      padding: 4px 14px;
-      font-size: 12px;
+      padding: 6px 16px;
+      font-size: 14px;
       font-weight: 500;
       color: #166534;
     }
@@ -358,9 +358,9 @@ window.PrintDoc = {
       background: #fefce8;
       border: 1.5px solid #fde68a;
       border-radius: 8px;
-      padding: 12px 16px;
-      font-size: 0.89rem;
-      line-height: 1.65;
+      padding: 14px 18px;
+      font-size: 1rem;
+      line-height: 1.7;
       color: #1a2533;
       white-space: pre-wrap;
       word-break: break-word;
@@ -368,13 +368,13 @@ window.PrintDoc = {
 
     /* ── Pie de página ── */
     .doc-footer {
-      margin-top: 32px;
+      margin-top: 30px;
       padding-top: 12px;
       border-top: 1px solid #e2e8f0;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 10px;
+      font-size: 12px;
       color: #94a3b8;
     }
     .doc-footer strong { color: #64748b; }
@@ -385,7 +385,7 @@ window.PrintDoc = {
       border: 1.5px solid #bfdbfe;
       border-radius: 8px;
       padding: 8px 14px;
-      font-size: 11px;
+      font-size: 13px;
       color: #1e40af;
       margin-bottom: 16px;
       display: flex;
@@ -395,7 +395,7 @@ window.PrintDoc = {
 
     /* ── MEDIA PRINT ── */
     @media print {
-      html { font-size: 12px; }
+      html { font-size: 15px; }
       body { background: white; }
       .doc-page { padding: 0; max-width: 100%; }
       .no-print-notice { display: none !important; }
@@ -454,9 +454,9 @@ window.PrintDoc = {
           <div class="info-card-value">${_esc(lugar)}</div>
         </div>
       </div>
-      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;">
-        <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#64748b;">Modelo</span>
-        <div style="font-weight:600;margin-top:3px;">${_esc(modelo)}</div>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;">
+        <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#64748b;">Modelo</span>
+        <div style="font-size:15px;font-weight:600;margin-top:3px;">${_esc(modelo)}</div>
       </div>
     </section>
 
