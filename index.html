@@ -496,6 +496,23 @@
                 </div>
               </div>
 
+              <!-- Obsequios -->
+              <div class="col-12">
+                <div class="card border-0 bg-light rounded-3 p-3">
+                  <div class="fw-semibold small mb-2">
+                    <i class="bi bi-gift me-1 text-secondary"></i>Obsequios
+                  </div>
+                  <div id="especObsequiosGroup" class="d-flex flex-wrap gap-1 mb-1">
+                    <!-- Checkboxes generados por Opciones.llenarCheckboxObsequios() -->
+                  </div>
+                  <div class="form-text text-muted mt-1" style="font-size:11px;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Selecciona los obsequios incluidos en este proyecto.
+                    Configura las opciones disponibles en <strong>Configuración</strong>.
+                  </div>
+                </div>
+              </div>
+
               <!-- Placa -->
               <div class="col-12" id="seccionPlaca">
                 <div class="form-check form-switch">
@@ -1119,6 +1136,11 @@
   <script src="assets/js/finanzas.js"></script>
   <script src="assets/js/tareas.js"></script>
   <script src="assets/js/calculadora.js"></script>
+  <!-- Librerías para generación de PDF (carga diferida desde CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Módulo de impresión y PDF de especificaciones -->
+  <script src="assets/js/print.js"></script>
   <script src="assets/js/app.js"></script>
 
   <script>

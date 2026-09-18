@@ -409,11 +409,12 @@ window.Configuracion = {
         </div>
       </div>
 
-      ${renderLista('sistemas',     'Sistemas Constructivos', 'bi-bricks',       op.sistemas)}
-      ${renderLista('cubiertas',    'Tipos de Cubierta',      'bi-house-fill',   op.cubiertas)}
-      ${renderLista('ornSistemas',  'Sistemas de Ornamentación','bi-grid-3x3-gap',op.ornSistemas)}
-      ${renderLista('ornColores',   'Colores de Ornamentación','bi-palette',     op.ornColores)}
-      ${renderLista('puertaChapas', 'Tipos de Chapa/Pomo',    'bi-door-open',    op.puertaChapas)}
+      ${renderLista('sistemas',     'Sistemas Constructivos',    'bi-bricks',       op.sistemas)}
+      ${renderLista('cubiertas',    'Tipos de Cubierta',          'bi-house-fill',   op.cubiertas)}
+      ${renderLista('ornSistemas',  'Sistemas de Ornamentación',  'bi-grid-3x3-gap', op.ornSistemas)}
+      ${renderLista('ornColores',   'Colores de Ornamentación',   'bi-palette',      op.ornColores)}
+      ${renderLista('puertaChapas', 'Tipos de Chapa/Pomo',        'bi-door-open',    op.puertaChapas)}
+      ${renderLista('obsequios',    'Obsequios',                  'bi-gift',         op.obsequios)}
 
       <div class="alert alert-info py-2 small mb-0">
         <i class="bi bi-info-circle me-1"></i>
@@ -457,14 +458,17 @@ window.Configuracion = {
   // ── Eliminar opción de una lista ──────────────────────────────────────────
   async eliminarOpcion(key, index) {
     const op = Opciones.get();
-    if (!op[key] || op[key].length <= 1) {
+    // Para obsequios se permite dejar la lista vacía; para el resto se exige al menos uno
+    if (key !== 'obsequios' && (!op[key] || op[key].length <= 1)) {
       UI.toast('Debe quedar al menos una opción', 'warning'); return;
     }
 
-    const valor = op[key][index];
+    const valor = op[key]?.[index];
+    if (valor === undefined) return; // índice inválido — defensa ante datos corruptos
     const ok = await UI.confirm(`¿Eliminar "${valor}"?`, 'Eliminar opción');
     if (!ok) return;
 
+    op[key] = op[key] || [];
     op[key].splice(index, 1);
     Opciones.save(op);
 

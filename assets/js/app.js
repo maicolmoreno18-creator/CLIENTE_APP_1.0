@@ -156,9 +156,20 @@ window.Expediente = {
               <strong>Firmado</strong> y luego edita el proyecto.
             </div>` : ''}
 
-          <div class="mt-3 d-flex gap-2">
+          <div class="mt-3 d-flex flex-wrap gap-2">
             <button class="btn btn-sm btn-outline-success" onclick="Proyectos.abrirModalEditar('${proyecto.id}')">
               <i class="bi bi-pencil me-1"></i>Editar Proyecto
+            </button>
+            <button class="btn btn-sm btn-outline-primary"
+                    onclick="PrintDoc.imprimir('${proyecto.id}', '${cliente.id}')"
+                    title="Imprimir especificaciones (sin precios)">
+              <i class="bi bi-printer me-1"></i>Imprimir especificaciones
+            </button>
+            <button class="btn btn-sm btn-outline-secondary"
+                    data-pdf-btn="${proyecto.id}"
+                    onclick="PrintDoc.descargarPDF('${proyecto.id}', '${cliente.id}')"
+                    title="Descargar especificaciones en PDF (sin precios)">
+              <i class="bi bi-file-earmark-pdf me-1"></i>Descargar PDF
             </button>
             <small class="text-muted align-self-center">
               Registrado: ${UI.formatDate(proyecto.createdAt)}
@@ -375,7 +386,26 @@ window.Expediente = {
       { icon: 'bi-door-open',     label: 'Puertas',          val: this._puertaLabel(esp) }
     ].filter(i => i.val);
 
-    if (items.length === 0) return '';
+    // Obsequios (array opcional, compatible con proyectos antiguos)
+    const obsequios = Array.isArray(esp.obsequios) ? esp.obsequios.filter(Boolean) : [];
+    const obsequiosHTML = obsequios.length > 0
+      ? `<div class="mt-3">
+           <div class="d-flex align-items-center gap-2 mb-2">
+             <i class="bi bi-gift text-success" style="font-size:13px;"></i>
+             <span class="text-muted" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Obsequios</span>
+           </div>
+           <div class="d-flex flex-wrap gap-1">
+             ${obsequios.map(o => `
+               <span class="badge fw-normal px-2 py-1"
+                     style="background:#f0fdf4;color:#166534;border:1px solid #86efac;border-radius:20px;font-size:11px;">
+                 🎁 ${UI.escapeHTML(o)}
+               </span>`).join('')}
+           </div>
+         </div>`
+      : '';
+
+    // Si no hay especificaciones ni obsequios, no mostrar nada
+    if (items.length === 0 && !obsequiosHTML) return '';
 
     const secciones = [
       { titulo: 'Construcción',   icono: 'bi-bricks',       color: '#6366f1', bg: '#eef2ff', keys: ['Sistema', 'Estilo', 'Altura'] },
@@ -405,6 +435,7 @@ window.Expediente = {
               </div>
             </div>`).join('')}
         </div>
+        ${obsequiosHTML}
       </div>`;
   },
 

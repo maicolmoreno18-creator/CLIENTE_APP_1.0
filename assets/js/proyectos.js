@@ -213,7 +213,8 @@ window.Proyectos = {
     this._toggleSeccionesFirmado(firmado);
     this._bindDropZone();
     this._bindEstadoSelect();
-    Opciones.inicializarSelects(); // cargar opciones personalizadas
+    Opciones.inicializarSelects(); // cargar opciones personalizadas (incluye obsequios)
+    // Para proyecto nuevo no hay obsequios preseleccionados — los checkboxes quedan desmarcados
 
     const expedienteEl = document.getElementById('modalExpediente');
     const expedienteInstance = bootstrap.Modal.getInstance(expedienteEl);
@@ -284,7 +285,7 @@ window.Proyectos = {
     this._toggleSeccionesFirmado(firmado);
     this._bindDropZone();
     this._bindEstadoSelect();
-    Opciones.inicializarSelects(); // cargar opciones personalizadas
+    Opciones.inicializarSelects(); // cargar opciones personalizadas (incluye obsequios)
 
     // Restaurar valores guardados DESPUÉS de llenar los selects
     document.getElementById('especSistema').value       = esp.sistema      || '';
@@ -292,6 +293,9 @@ window.Proyectos = {
     document.getElementById('especOrnSistema').value    = esp.ornSistema   || '';
     document.getElementById('especOrnColor').value      = esp.ornColor     || '';
     document.getElementById('especPuertaChapa').value   = esp.puertaChapa  || '';
+
+    // Restaurar obsequios seleccionados (compatibilidad con proyectos sin obsequios)
+    Opciones.marcarObsequios('especObsequiosGroup', esp.obsequios || []);
 
     // Mostrar/ocultar campos condicionales (re-evaluar tras cargar opciones)
     document.getElementById('especCubiertaOtroGroup')
@@ -397,7 +401,8 @@ window.Proyectos = {
       ornColor,
       ornColorOtro:  ornColor === 'Otro' ? document.getElementById('especOrnColorOtro').value.trim() : '',
       puertaColor:   document.getElementById('especPuertaColor').value.trim(),
-      puertaChapa:   document.getElementById('especPuertaChapa').value
+      puertaChapa:   document.getElementById('especPuertaChapa').value,
+      obsequios:     Opciones.getObsequiosSeleccionados('especObsequiosGroup')
     };
 
     const data = {

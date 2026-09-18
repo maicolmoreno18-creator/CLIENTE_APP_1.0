@@ -2275,3 +2275,85 @@ body {
 
 /* FAB solo visible cuando la app está activa */
 #calcFAB { display: flex; }
+
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+   BOTONES DE IMPRESIÓN Y PDF — Especificaciones de Ornamentación
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- */
+
+/* Botón Imprimir especificaciones */
+.btn-imprimir-espec {
+  background: white;
+  color: #2d6a9f;
+  border: 1.5px solid #2d6a9f;
+  border-radius: 9px;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 5px 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.btn-imprimir-espec:hover {
+  background: #2d6a9f;
+  color: white;
+  box-shadow: 0 4px 12px rgba(45,106,159,0.3);
+  transform: translateY(-1px);
+}
+
+/* Botón Descargar PDF */
+.btn-descargar-pdf {
+  background: white;
+  color: #475569;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 9px;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 5px 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.btn-descargar-pdf:hover {
+  border-color: #dc2626;
+  color: #dc2626;
+  box-shadow: 0 4px 12px rgba(220,38,38,0.15);
+  transform: translateY(-1px);
+}
+
+/* Grupo de botones de acción del proyecto — wrap en pantallas pequeñas */
+.proyecto-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* Badge de obsequio en especificaciones del expediente */
+.obsequio-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1.5px solid #86efac;
+  border-radius: 20px;
+  padding: 3px 12px;
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+/* ── Ocultar botones de imprimir/PDF al imprimir la app ── */
+@media print {
+  /* Ocultar los botones de impresión dentro del expediente */
+  .btn-imprimir-espec,
+  .btn-descargar-pdf,
+  [data-pdf-btn],
+  .proyecto-acciones .btn {
+    display: none !important;
+  }
+}
