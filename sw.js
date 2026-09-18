@@ -2,7 +2,7 @@
    ClienteAPP — Service Worker v4
    ============================================ */
 
-const CACHE_NAME    = 'clienteapp-v5';
+const CACHE_NAME    = 'clienteapp-v6';
 const CACHE_STATIC  = [
   './',
   './index.html',
@@ -73,18 +73,38 @@ self.addEventListener('fetch', (event) => {
 
   if (!esPropioApp && !esCDNPermitida) return; // dejar pasar al navegador normal
 
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
+  // ── CDNs externas (Bootstrap, etc.): cache-first (no cambian nunca) ──────
+  if (esCDNPermitida) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached;
+        return fetch(event.request.clone()).then((response) => {
+          if (response && response.status === 200 && response.type !== 'opaque') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+          }
+          return response;
+        });
+      })
+    );
+    return;
+  }
 
-      return fetch(event.request.clone()).then((response) => {
-        // Solo cachear respuestas válidas de recursos propios o CDN
-        if (response && response.status === 200 && response.type !== 'opaque') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
-        }
-        return response;
-      }).catch(() => {
+  // ── Recursos propios (HTML/JS/CSS): NETWORK-FIRST ────────────────────────
+  // Siempre busca la versión más reciente en internet. Si no hay conexión,
+  // usa la copia en caché. Así la app se actualiza sola sin Ctrl+Shift+R.
+  event.respondWith(
+    fetch(event.request.clone()).then((response) => {
+      // Descarga exitosa → actualizar caché y devolver la versión fresca
+      if (response && response.status === 200 && response.type !== 'opaque') {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+      }
+      return response;
+    }).catch(() => {
+      // Sin conexión → usar la copia en caché
+      return caches.match(event.request).then((cached) => {
+        if (cached) return cached;
         // Fallback offline: devolver index.html para navegación HTML
         if (event.request.headers.get('accept')?.includes('text/html')) {
           return caches.match('./index.html');

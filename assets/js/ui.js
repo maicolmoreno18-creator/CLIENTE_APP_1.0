@@ -344,6 +344,14 @@ window.UI = {
     }).format(value);
   },
 
+  // ── Moneda ocultable ──────────────────────────────────────────────────────
+  // Envuelve el valor en un <span class="money-value"> para que el toggle de
+  // privacidad (ojito) pueda ocultarlo con CSS. Usar SOLO en HTML visible,
+  // NUNCA en toasts, atributos o .textContent (rompería el markup).
+  money(value) {
+    return `<span class="money-value">${this.formatCurrency(value)}</span>`;
+  },
+
   formatDate(dateStr) {
     if (!dateStr) return '—';
     try {
@@ -439,3 +447,41 @@ window.UI = {
     return `https://wa.me/${full}${msg ? '?text=' + msg : ''}`;
   }
 };
+
+// ── Privacidad de valores monetarios (toggle "ojito") ─────────────────────────
+const MoneyPrivacy = (() => {
+  const KEY = 'clienteapp_ocultar_dinero';
+
+  function estaOculto() {
+    return localStorage.getItem(KEY) === '1';
+  }
+
+  // Aplicar el estado guardado al <body> (llamar al iniciar la app)
+  function aplicar() {
+    document.body.classList.toggle('hide-money', estaOculto());
+    _actualizarBoton();
+  }
+
+  // Alternar mostrar/ocultar
+  function toggle() {
+    const nuevo = !estaOculto();
+    localStorage.setItem(KEY, nuevo ? '1' : '0');
+    document.body.classList.toggle('hide-money', nuevo);
+    _actualizarBoton();
+  }
+
+  // Actualizar el icono/estado del botón en la topbar
+  function _actualizarBoton() {
+    const btn = document.getElementById('btnToggleMoney');
+    if (!btn) return;
+    const oculto = estaOculto();
+    const icon = btn.querySelector('i');
+    if (icon) icon.className = oculto ? 'bi bi-eye-slash fs-6' : 'bi bi-eye fs-6';
+    btn.title = oculto ? 'Mostrar valores en dinero' : 'Ocultar valores en dinero';
+    btn.setAttribute('aria-pressed', oculto ? 'true' : 'false');
+  }
+
+  return { estaOculto, aplicar, toggle };
+})();
+
+window.MoneyPrivacy = MoneyPrivacy;

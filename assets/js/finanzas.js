@@ -82,7 +82,7 @@ window.Finanzas = {
             <div class="d-flex gap-2 flex-wrap">
               <div class="hero-pill ${disponible >= 0 ? '' : 'hero-pill-warn'}">
                 <i class="bi bi-wallet me-1"></i>
-                Disponible: <strong>${UI.formatCurrency(disponible)}</strong>
+                Disponible: <strong>${UI.money(disponible)}</strong>
               </div>
               ${diasProxBase <= 5 ? `
                 <div class="hero-pill hero-pill-warn">
@@ -100,7 +100,7 @@ window.Finanzas = {
               <div class="kpi-icon"><i class="bi bi-percent"></i></div>
               <div class="kpi-valor">${UI.formatCurrency(totalComisionCobrada)}</div>
               <div class="kpi-label">Comisiones Cobradas</div>
-              <div class="kpi-sub">${UI.formatCurrency(totalComisionPendiente)} pendiente</div>
+              <div class="kpi-sub">${UI.money(totalComisionPendiente)} pendiente</div>
             </div>
           </div>
           <div class="col-6 col-lg-3">
@@ -109,7 +109,7 @@ window.Finanzas = {
               <div class="kpi-valor">${UI.formatCurrency(deudaActual)}</div>
               <div class="kpi-label">Deuda Restante</div>
               <div class="kpi-sub">
-                Total: ${UI.formatCurrency(totalPrestado)} · Abonado: ${UI.formatCurrency(totalAbonado)}
+                Total: ${UI.money(totalPrestado)} · Abonado: ${UI.money(totalAbonado)}
               </div>
             </div>
           </div>

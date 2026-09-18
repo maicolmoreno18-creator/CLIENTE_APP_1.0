@@ -361,7 +361,7 @@ window.Dashboard = {
                   <i class="bi bi-cash-coin text-white" style="font-size:15px;"></i>
                 </div>
                 <div>
-                  <div class="fw-bold text-white" style="font-size:15px;line-height:1.1;">${UI.formatCurrency(totalRecibido)}</div>
+                  <div class="fw-bold text-white" style="font-size:15px;line-height:1.1;">${UI.money(totalRecibido)}</div>
                   <div class="text-white opacity-70" style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Recaudado</div>
                 </div>
               </div>
@@ -373,7 +373,7 @@ window.Dashboard = {
                   <i class="bi bi-hourglass-split text-white" style="font-size:15px;"></i>
                 </div>
                 <div>
-                  <div class="fw-bold text-white" style="font-size:15px;line-height:1.1;">${UI.formatCurrency(totalPendiente)}</div>
+                  <div class="fw-bold text-white" style="font-size:15px;line-height:1.1;">${UI.money(totalPendiente)}</div>
                   <div class="text-white opacity-70" style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Pendiente</div>
                 </div>
               </div>
@@ -404,8 +404,8 @@ window.Dashboard = {
         <div class="row g-3 mb-4">
           ${this._kpiCard('bi-people-fill', 'primary', totalClientes, 'Total Clientes', `${firmados} firmados`, 0)}
           ${this._kpiCard('bi-hammer', 'danger', enConstruccion, 'En Construcción', `${finalizados} finalizados`, 1)}
-          ${this._kpiCard('bi-hourglass-split', 'warning', etapasPendientes, 'Pagos Pendientes', `${UI.formatCurrency(totalPendiente)} por cobrar`, 2)}
-          ${this._kpiCard('bi-cash-coin', 'success', UI.formatCurrency(totalRecibido), 'Total Recaudado', `${pctCobrado}% del total`, 3)}
+          ${this._kpiCard('bi-hourglass-split', 'warning', etapasPendientes, 'Pagos Pendientes', `${UI.money(totalPendiente)} por cobrar`, 2)}
+          ${this._kpiCard('bi-cash-coin', 'success', UI.money(totalRecibido), 'Total Recaudado', `${pctCobrado}% del total`, 3)}
         </div>
 
         <!-- ══════════════════════════════════════════════════════════════════
@@ -490,19 +490,19 @@ window.Dashboard = {
                 <div class="row g-2 w-100">
                   <div class="col-4">
                     <div class="rounded-3 p-2 text-center" style="background:#f0fdf4;border:1px solid #bbf7d0;">
-                      <div class="fw-bold text-success" style="font-size:11px;">${UI.formatCurrency(totalRecibido)}</div>
+                      <div class="fw-bold text-success" style="font-size:11px;">${UI.money(totalRecibido)}</div>
                       <div class="text-muted" style="font-size:9px;text-transform:uppercase;letter-spacing:.4px;">Recibido</div>
                     </div>
                   </div>
                   <div class="col-4">
                     <div class="rounded-3 p-2 text-center" style="background:#fffbeb;border:1px solid #fde68a;">
-                      <div class="fw-bold text-warning" style="font-size:11px;">${UI.formatCurrency(totalPendiente)}</div>
+                      <div class="fw-bold text-warning" style="font-size:11px;">${UI.money(totalPendiente)}</div>
                       <div class="text-muted" style="font-size:9px;text-transform:uppercase;letter-spacing:.4px;">Pendiente</div>
                     </div>
                   </div>
                   <div class="col-4">
                     <div class="rounded-3 p-2 text-center" style="background:#eff6ff;border:1px solid #bfdbfe;">
-                      <div class="fw-bold text-primary" style="font-size:11px;">${UI.formatCurrency(totalEsperado)}</div>
+                      <div class="fw-bold text-primary" style="font-size:11px;">${UI.money(totalEsperado)}</div>
                       <div class="text-muted" style="font-size:9px;text-transform:uppercase;letter-spacing:.4px;">Total</div>
                     </div>
                   </div>
@@ -944,14 +944,14 @@ window.Dashboard = {
                style="width:32px;height:32px;background:${cfg.color}20;">
             <i class="bi ${cfg.icon}" style="color:${cfg.color};font-size:13px;"></i>
           </div>
-          <div class="flex-grow-1 min-w-0">
+          <div class="flex-grow-1" style="min-width:0;overflow:hidden;">
             <div class="d-flex align-items-center gap-2 flex-wrap">
-              <span class="fw-semibold small">${c ? UI.escapeHTML(c.nombre.split(' ')[0] + ' ' + (c.nombre.split(' ')[1] || '')) : 'Cliente'}</span>
-              <span class="badge rounded-pill" style="background:${cfg.color}20;color:${cfg.color};font-size:10px;">${cfg.label}</span>
+              <span class="fw-semibold small text-truncate" style="max-width:100%;">${c ? UI.escapeHTML(c.nombre.split(' ')[0] + ' ' + (c.nombre.split(' ')[1] || '')) : 'Cliente'}</span>
+              <span class="badge rounded-pill flex-shrink-0" style="background:${cfg.color}20;color:${cfg.color};font-size:10px;">${cfg.label}</span>
             </div>
-            <div class="text-muted text-truncate" style="font-size:11px;">${UI.escapeHTML(s.descripcion)}</div>
+            <div class="text-muted" style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${UI.escapeHTML(s.descripcion)}</div>
           </div>
-          <span class="text-muted flex-shrink-0" style="font-size:10px;">${UI.timeAgo(s.createdAt)}</span>
+          <span class="text-muted flex-shrink-0 text-end" style="font-size:10px;white-space:nowrap;">${UI.timeAgo(s.createdAt)}</span>
         </div>`;
     }).join('');
   },

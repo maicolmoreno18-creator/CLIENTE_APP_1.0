@@ -2357,3 +2357,31 @@ body {
     display: none !important;
   }
 }
+
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+   PRIVACIDAD DE VALORES EN DINERO (toggle "ojito")
+   Cuando el <body> tiene la clase .hide-money, los montos se difuminan.
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- */
+
+/* Valores envueltos con UI.money() y las tarjetas KPI de Mis Finanzas */
+body.hide-money .money-value,
+body.hide-money .kpi-valor {
+  filter: blur(9px);
+  user-select: none;
+  cursor: default;
+  transition: filter 0.15s ease;
+  -webkit-user-select: none;
+}
+
+/* Al pasar el mouse por encima NO se revela (privacidad real).
+   Para mostrar, se usa el botón del ojito. */
+body.hide-money .money-value {
+  pointer-events: none;
+}
+
+/* Botón del ojito: feedback visual cuando está activo (valores ocultos) */
+#btnToggleMoney[aria-pressed="true"] {
+  background: #1a3c5e;
+  color: white;
+  border-color: #1a3c5e;
+}

@@ -160,12 +160,12 @@ window.PrintDoc = {
   <style>
     /* ── Reset y base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 17px; }
+    html { font-size: 19px; }
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
       color: #1a2533;
       background: #fff;
-      line-height: 1.6;
+      line-height: 1.55;
     }
 
     /* ── Página ── */
@@ -200,45 +200,26 @@ window.PrintDoc = {
       flex-shrink: 0;
     }
     .doc-brand-name {
-      font-size: 22px;
+      font-size: 25px;
       font-weight: 700;
       color: #1a3c5e;
       letter-spacing: -0.3px;
     }
     .doc-brand-sub {
-      font-size: 13px;
+      font-size: 14px;
       color: #64748b;
       margin-top: 1px;
     }
     .doc-meta {
       text-align: right;
-      font-size: 13px;
+      font-size: 14px;
       color: #64748b;
     }
     .doc-meta strong {
       display: block;
-      font-size: 15px;
+      font-size: 16px;
       color: #1a2533;
       margin-bottom: 2px;
-    }
-
-    /* ── Título del documento ── */
-    .doc-title-block {
-      background: linear-gradient(135deg, #1a3c5e 0%, #2d6a9f 100%);
-      color: white;
-      border-radius: 10px;
-      padding: 12px 20px;
-      margin-bottom: 16px;
-    }
-    .doc-title-block h1 {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 4px;
-      letter-spacing: 0.2px;
-    }
-    .doc-title-block p {
-      font-size: 13px;
-      opacity: 0.85;
     }
 
     /* ── Datos del proyecto ── */
@@ -255,7 +236,7 @@ window.PrintDoc = {
       border-left: 3px solid #2d6a9f;
     }
     .info-card-label {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.8px;
@@ -263,7 +244,7 @@ window.PrintDoc = {
       margin-bottom: 4px;
     }
     .info-card-value {
-      font-size: 15px;
+      font-size: 17px;
       font-weight: 600;
       color: #1a2533;
       word-break: break-word;
@@ -275,7 +256,7 @@ window.PrintDoc = {
       page-break-inside: avoid;
     }
     .section-title {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 700;
       color: #1a3c5e;
       text-transform: uppercase;
@@ -287,13 +268,13 @@ window.PrintDoc = {
       align-items: center;
       gap: 6px;
     }
-    .section-icon { font-size: 18px; }
+    .section-icon { font-size: 20px; }
 
     /* ── Tabla de especificaciones ── */
     .spec-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 1rem;
+      font-size: 1.05rem;
     }
     .spec-table thead tr {
       background: #1a3c5e;
@@ -303,7 +284,7 @@ window.PrintDoc = {
       padding: 11px 14px;
       text-align: left;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 14px;
       letter-spacing: 0.5px;
       text-transform: uppercase;
     }
@@ -328,7 +309,7 @@ window.PrintDoc = {
     .empty-note {
       color: #94a3b8;
       font-style: italic;
-      font-size: 14px;
+      font-size: 15px;
       padding: 10px 0;
     }
 
@@ -345,7 +326,7 @@ window.PrintDoc = {
       border: 1.5px solid #86efac;
       border-radius: 20px;
       padding: 6px 16px;
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 500;
       color: #166534;
     }
@@ -359,8 +340,8 @@ window.PrintDoc = {
       border: 1.5px solid #fde68a;
       border-radius: 8px;
       padding: 14px 18px;
-      font-size: 1rem;
-      line-height: 1.7;
+      font-size: 1.05rem;
+      line-height: 1.65;
       color: #1a2533;
       white-space: pre-wrap;
       word-break: break-word;
@@ -381,7 +362,7 @@ window.PrintDoc = {
 
     /* ── MEDIA PRINT ── */
     @media print {
-      html { font-size: 15px; }
+      html { font-size: 16px; }
       body { background: white; }
       .doc-page { padding: 0; max-width: 100%; }
       .no-print-notice { display: none !important; }
@@ -409,12 +390,6 @@ window.PrintDoc = {
       </div>
     </header>
 
-    <!-- Título del documento -->
-    <div class="doc-title-block">
-      <h1>Ficha Técnica del Proyecto</h1>
-      <p>Documento de especificaciones para ornamentación e instalación · Sin valor económico</p>
-    </div>
-
     <!-- Datos del proyecto -->
     <section class="doc-section">
       <h2 class="section-title">
@@ -435,8 +410,8 @@ window.PrintDoc = {
         </div>
       </div>
       <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;">
-        <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#64748b;">Modelo</span>
-        <div style="font-size:15px;font-weight:600;margin-top:3px;">${_esc(modelo)}</div>
+        <span style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#64748b;">Modelo</span>
+        <div style="font-size:17px;font-weight:600;margin-top:3px;">${_esc(modelo)}</div>
       </div>
     </section>
 
