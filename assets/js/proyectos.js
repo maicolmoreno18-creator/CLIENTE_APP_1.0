@@ -263,14 +263,19 @@ window.Proyectos = {
     document.getElementById('especOrnColorOtro').value  = esp.ornColorOtro || '';
     document.getElementById('especPuertaColor').value   = esp.puertaColor  || '';
     document.getElementById('especPuertaChapa').value   = esp.puertaChapa  || '';
+    // Nuevos campos de apertura y mixto (compatibilidad: vacío si no existen)
+    document.getElementById('especOrnAperturaCorrediza').value      = esp.ornAperturaCorrediza      || '';
+    document.getElementById('especOrnMixtoAbatiblesRef').value      = esp.ornMixtoAbatiblesRef      || '';
+    document.getElementById('especOrnAperturaAbatible').value       = esp.ornAperturaAbatible       || '';
+    document.getElementById('especOrnMixtoCorredizasRef').value     = esp.ornMixtoCorredizasRef     || '';
+    document.getElementById('especOrnAperturaCorredizaMixto').value = esp.ornAperturaCorredizaMixto || '';
 
     // Mostrar/ocultar campos condicionales
     document.getElementById('especCubiertaOtroGroup')
       .classList.toggle('d-none', esp.cubierta !== 'Otro');
-    document.getElementById('especOrnAperturaGroup')
-      .classList.toggle('d-none', !esp.ornSistema?.includes('Apertura'));
     document.getElementById('especOrnColorOtroGroup')
       .classList.toggle('d-none', esp.ornColor !== 'Otro');
+    Proyectos._actualizarVisibilidadOrn(esp.ornSistema || '');
 
     const placaGroup = document.getElementById('placaPrecioGroup');
     if (p.incluyePlaca) placaGroup.classList.remove('d-none');
@@ -304,6 +309,8 @@ window.Proyectos = {
       .classList.toggle('d-none', !esp.ornSistema?.includes('Apertura'));
     document.getElementById('especOrnColorOtroGroup')
       .classList.toggle('d-none', esp.ornColor !== 'Otro');
+    // Re-evaluar visibilidad ornamentación completa tras cargar opciones
+    Proyectos._actualizarVisibilidadOrn(esp.ornSistema || '');
 
     const expedienteEl = document.getElementById('modalExpediente');
     const expedienteInstance = bootstrap.Modal.getInstance(expedienteEl);
@@ -330,6 +337,22 @@ window.Proyectos = {
     });
     const banner = document.getElementById('bannerCotizacion');
     if (banner) banner.classList.toggle('d-none', firmado);
+  },
+
+  // ── Mostrar/ocultar sub-campos de ornamentación según el sistema ──────────
+  _actualizarVisibilidadOrn(sistema) {
+    const esMixto     = sistema.toLowerCase().includes('mixto');
+    const esAbatible  = !esMixto && sistema.includes('Apertura');
+    const esCorredizo = !esMixto && sistema.toLowerCase().includes('corredizo');
+
+    const toggle = (id, visible) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('d-none', !visible);
+    };
+
+    toggle('especOrnAperturaGroup',         esAbatible);
+    toggle('especOrnAperturaCorredizaGroup', esCorredizo);
+    toggle('especOrnMixtoGroup',             esMixto);
   },
 
   // ── Reaccionar al cambio de estado en tiempo real ─────────────────────────
@@ -388,6 +411,9 @@ window.Proyectos = {
     const cubierta    = document.getElementById('especCubierta').value;
     const ornSistema  = document.getElementById('especOrnSistema').value;
     const ornColor    = document.getElementById('especOrnColor').value;
+    const esMixto     = ornSistema.toLowerCase().includes('mixto');
+    const esAbatible  = !esMixto && ornSistema.includes('Apertura');
+    const esCorredizo = !esMixto && ornSistema.includes('Corredizo');
 
     const especificaciones = {
       sistema:       document.getElementById('especSistema').value,
@@ -397,7 +423,15 @@ window.Proyectos = {
       cubierta,
       cubiertaOtro:  cubierta === 'Otro' ? document.getElementById('especCubiertaOtro').value.trim() : '',
       ornSistema,
-      ornApertura:   ornSistema.includes('Apertura') ? document.getElementById('especOrnApertura').value : '',
+      // Campo original (compatibilidad con datos existentes de tipo Apertura/abatible)
+      ornApertura:         esAbatible ? document.getElementById('especOrnApertura').value : '',
+      // Apertura corredizas simples
+      ornAperturaCorrediza: esCorredizo ? document.getElementById('especOrnAperturaCorrediza').value : '',
+      // Campos de sistema mixto
+      ornMixtoAbatiblesRef:       esMixto ? document.getElementById('especOrnMixtoAbatiblesRef').value.trim() : '',
+      ornAperturaAbatible:         esMixto ? document.getElementById('especOrnAperturaAbatible').value : '',
+      ornMixtoCorredizasRef:       esMixto ? document.getElementById('especOrnMixtoCorredizasRef').value.trim() : '',
+      ornAperturaCorredizaMixto:   esMixto ? document.getElementById('especOrnAperturaCorredizaMixto').value : '',
       ornColor,
       ornColorOtro:  ornColor === 'Otro' ? document.getElementById('especOrnColorOtro').value.trim() : '',
       puertaColor:   document.getElementById('especPuertaColor').value.trim(),

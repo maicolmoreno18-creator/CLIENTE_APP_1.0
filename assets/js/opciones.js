@@ -22,7 +22,8 @@ const OPCIONES_DEFAULT = {
   ],
   ornSistemas: [
     'Corredizo',
-    'Apertura (abatible)'
+    'Apertura (abatible)',
+    'Sistema mixto (corredizas + abatibles)'
   ],
   ornColores: [
     'Negro',

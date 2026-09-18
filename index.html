@@ -453,30 +453,101 @@
                     <i class="bi bi-grid-3x3-gap me-1 text-secondary"></i>Ornamentación (Ventanas / Rejas)
                   </div>
                   <div class="row g-2">
-                    <div class="col-md-4">
+
+                    <!-- Fila 1: Sistema + Color (siempre visible) -->
+                    <div class="col-md-6">
                       <label class="form-label fw-semibold" style="font-size:11px;">Sistema</label>
                       <select class="form-select form-select-sm" id="especOrnSistema">
                         <option value="">Seleccionar...</option>
                       </select>
                     </div>
-                    <div class="col-md-4" id="especOrnAperturaGroup">
-                      <label class="form-label fw-semibold" style="font-size:11px;">Sentido de apertura</label>
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold" style="font-size:11px;">Color (anticorrosivo)</label>
+                      <select class="form-select form-select-sm" id="especOrnColor">
+                        <option value="">Seleccionar...</option>
+                      </select>
+                    </div>
+                    <div class="col-md-6 d-none" id="especOrnColorOtroGroup">
+                      <input type="text" class="form-control form-control-sm" id="especOrnColorOtro"
+                             placeholder="Color personalizado..." />
+                    </div>
+
+                    <!-- Solo Abatibles: sentido apertura abatibles -->
+                    <div class="col-md-6 d-none" id="especOrnAperturaGroup">
+                      <label class="form-label fw-semibold" style="font-size:11px;">
+                        Sentido de apertura (abatibles)
+                      </label>
                       <select class="form-select form-select-sm" id="especOrnApertura">
                         <option value="">Seleccionar...</option>
                         <option value="Hacia adentro">Hacia adentro</option>
                         <option value="Hacia afuera">Hacia afuera</option>
                       </select>
                     </div>
-                    <div class="col-md-4">
-                      <label class="form-label fw-semibold" style="font-size:11px;">Color (anticorrosivo)</label>
-                      <select class="form-select form-select-sm" id="especOrnColor">
+
+                    <!-- Solo Corredizas: sentido apertura corredizas -->
+                    <div class="col-md-6 d-none" id="especOrnAperturaCorredizaGroup">
+                      <label class="form-label fw-semibold" style="font-size:11px;">
+                        Sentido de apertura (corredizas)
+                      </label>
+                      <select class="form-select form-select-sm" id="especOrnAperturaCorrediza">
                         <option value="">Seleccionar...</option>
+                        <option value="Del centro hacia los lados">Del centro hacia los lados</option>
+                        <option value="De los lados hacia el centro">De los lados hacia el centro</option>
                       </select>
                     </div>
-                    <div class="col-md-4 d-none" id="especOrnColorOtroGroup">
-                      <input type="text" class="form-control form-control-sm" id="especOrnColorOtro"
-                             placeholder="Color personalizado..." />
+
+                    <!-- Sistema mixto: sub-secciones abatibles + corredizas -->
+                    <div class="col-12 d-none" id="especOrnMixtoGroup">
+                      <div class="row g-2 mt-1">
+                        <!-- Sub-sección abatibles -->
+                        <div class="col-12">
+                          <div class="rounded-3 p-2" style="background:#e8f0f8;border:1px solid #c8d8e8;">
+                            <div class="fw-semibold mb-2" style="font-size:11px;color:#1a3c5e;">
+                              <i class="bi bi-window me-1"></i>Ventanas Abatibles
+                            </div>
+                            <div class="row g-2">
+                              <div class="col-md-6">
+                                <label class="form-label fw-semibold" style="font-size:11px;">Descripción / Referencias</label>
+                                <input type="text" class="form-control form-control-sm" id="especOrnMixtoAbatiblesRef"
+                                       placeholder="Ej: Ventanas alcoba, baño..." />
+                              </div>
+                              <div class="col-md-6">
+                                <label class="form-label fw-semibold" style="font-size:11px;">Apertura</label>
+                                <select class="form-select form-select-sm" id="especOrnAperturaAbatible">
+                                  <option value="">Seleccionar...</option>
+                                  <option value="Hacia adentro">Hacia adentro</option>
+                                  <option value="Hacia afuera">Hacia afuera</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <!-- Sub-sección corredizas -->
+                        <div class="col-12">
+                          <div class="rounded-3 p-2" style="background:#e8f8ee;border:1px solid #b8e8cc;">
+                            <div class="fw-semibold mb-2" style="font-size:11px;color:#1a4a2e;">
+                              <i class="bi bi-arrows-expand me-1"></i>Ventanas Corredizas
+                            </div>
+                            <div class="row g-2">
+                              <div class="col-md-6">
+                                <label class="form-label fw-semibold" style="font-size:11px;">Descripción / Referencias</label>
+                                <input type="text" class="form-control form-control-sm" id="especOrnMixtoCorredizasRef"
+                                       placeholder="Ej: Ventanas sala, cocina..." />
+                              </div>
+                              <div class="col-md-6">
+                                <label class="form-label fw-semibold" style="font-size:11px;">Apertura</label>
+                                <select class="form-select form-select-sm" id="especOrnAperturaCorredizaMixto">
+                                  <option value="">Seleccionar...</option>
+                                  <option value="Del centro hacia los lados">Del centro hacia los lados</option>
+                                  <option value="De los lados hacia el centro">De los lados hacia el centro</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
+
                   </div>
                 </div>
               </div>
@@ -1160,10 +1231,11 @@
           .classList.toggle('d-none', this.value !== 'Otro');
       });
 
-      // Ornamentación: mostrar sentido solo si es Apertura
+      // Ornamentación: mostrar sub-campos según el sistema seleccionado
       document.getElementById('especOrnSistema')?.addEventListener('change', function() {
-        document.getElementById('especOrnAperturaGroup')
-          .classList.toggle('d-none', !this.value.includes('Apertura'));
+        if (typeof Proyectos !== 'undefined') {
+          Proyectos._actualizarVisibilidadOrn(this.value);
+        }
       });
 
       // Ornamentación: color "Otro"

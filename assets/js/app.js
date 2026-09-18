@@ -455,11 +455,56 @@ window.Expediente = {
 
   _ornLabel(esp) {
     if (!esp?.ornSistema) return null;
+
+    const color = esp.ornColor === 'Otro' ? (esp.ornColorOtro || '') : (esp.ornColor || '');
+    const colorSufijo = color ? ` · Anticorrosivo ${color}` : '';
+    const esMixto    = esp.ornSistema.toLowerCase().includes('mixto');
+    const esAbatible = !esMixto && esp.ornSistema.includes('Apertura');
+    const esCorredizo= !esMixto && esp.ornSistema.toLowerCase().includes('corredizo');
+
+    if (esMixto) {
+      // Sistema mixto: mostrar detalle de cada sub-tipo
+      const partes = [esp.ornSistema];
+      // Sub-sección abatibles
+      const refAb  = (esp.ornMixtoAbatiblesRef  || '').trim();
+      const aperAb = esp.ornAperturaAbatible || '';
+      if (refAb || aperAb) {
+        let ab = 'Abatibles';
+        if (refAb)  ab += `: ${refAb}`;
+        if (aperAb) ab += ` (${aperAb})`;
+        partes.push(ab);
+      }
+      // Sub-sección corredizas
+      const refCo  = (esp.ornMixtoCorredizasRef      || '').trim();
+      const aperCo = esp.ornAperturaCorredizaMixto || '';
+      if (refCo || aperCo) {
+        let co = 'Corredizas';
+        if (refCo)  co += `: ${refCo}`;
+        if (aperCo) co += ` (${aperCo})`;
+        partes.push(co);
+      }
+      return partes.join(' · ') + colorSufijo || null;
+    }
+
+    if (esAbatible) {
+      // Abatibles simples — campo original ornApertura
+      let label = esp.ornSistema;
+      if (esp.ornApertura) label += ` · ${esp.ornApertura}`;
+      return label + colorSufijo || null;
+    }
+
+    if (esCorredizo) {
+      // Corredizas simples — campo nuevo ornAperturaCorrediza
+      let label = esp.ornSistema;
+      if (esp.ornAperturaCorrediza) label += ` · ${esp.ornAperturaCorrediza}`;
+      return label + colorSufijo || null;
+    }
+
+    // Fallback: cualquier otro valor de ornSistema (datos personalizados del usuario)
     let label = esp.ornSistema;
-    if (esp.ornSistema === 'Apertura' && esp.ornApertura) label += ` · ${esp.ornApertura}`;
-    const color = esp.ornColor === 'Otro' ? esp.ornColorOtro : esp.ornColor;
-    if (color) label += ` · Anticorrosivo ${color}`;
-    return label || null;
+    // compatibilidad: si tiene ornApertura de datos antiguos, mostrarlo
+    if (esp.ornApertura) label += ` · ${esp.ornApertura}`;
+    return label + colorSufijo || null;
   },
 
   _puertaLabel(esp) {

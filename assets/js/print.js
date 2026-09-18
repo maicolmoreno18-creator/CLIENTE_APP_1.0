@@ -25,14 +25,53 @@ window.PrintDoc = {
     // Obsequios (array, compatible con proyectos sin este campo)
     const obsequios = Array.isArray(esp.obsequios) ? esp.obsequios.filter(Boolean) : [];
 
-    // Especificaciones técnicas — misma lógica que Expediente._renderEspecificaciones
+    // Especificaciones técnicas — misma lógica que Expediente._ornLabel
     const ornLabel = (() => {
       if (!esp.ornSistema) return null;
+
+      const color      = esp.ornColor === 'Otro' ? (esp.ornColorOtro || '') : (esp.ornColor || '');
+      const colorSufijo = color ? ` · Anticorrosivo ${color}` : '';
+      const esMixto    = esp.ornSistema.toLowerCase().includes('mixto');
+      const esAbatible = !esMixto && esp.ornSistema.includes('Apertura');
+      const esCorredizo= !esMixto && esp.ornSistema.toLowerCase().includes('corredizo');
+
+      if (esMixto) {
+        const partes = [esp.ornSistema];
+        const refAb  = (esp.ornMixtoAbatiblesRef  || '').trim();
+        const aperAb = esp.ornAperturaAbatible || '';
+        if (refAb || aperAb) {
+          let ab = 'Abatibles';
+          if (refAb)  ab += `: ${refAb}`;
+          if (aperAb) ab += ` (${aperAb})`;
+          partes.push(ab);
+        }
+        const refCo  = (esp.ornMixtoCorredizasRef      || '').trim();
+        const aperCo = esp.ornAperturaCorredizaMixto || '';
+        if (refCo || aperCo) {
+          let co = 'Corredizas';
+          if (refCo)  co += `: ${refCo}`;
+          if (aperCo) co += ` (${aperCo})`;
+          partes.push(co);
+        }
+        return (partes.join(' · ') + colorSufijo) || null;
+      }
+
+      if (esAbatible) {
+        let label = esp.ornSistema;
+        if (esp.ornApertura) label += ` · ${esp.ornApertura}`;
+        return (label + colorSufijo) || null;
+      }
+
+      if (esCorredizo) {
+        let label = esp.ornSistema;
+        if (esp.ornAperturaCorrediza) label += ` · ${esp.ornAperturaCorrediza}`;
+        return (label + colorSufijo) || null;
+      }
+
+      // Fallback: valor personalizado o datos anteriores
       let label = esp.ornSistema;
-      if (esp.ornSistema.includes('Apertura') && esp.ornApertura) label += ` · ${esp.ornApertura}`;
-      const color = esp.ornColor === 'Otro' ? esp.ornColorOtro : esp.ornColor;
-      if (color) label += ` · Anticorrosivo ${color}`;
-      return label || null;
+      if (esp.ornApertura) label += ` · ${esp.ornApertura}`;
+      return (label + colorSufijo) || null;
     })();
 
     const puertaLabel = (() => {
@@ -121,7 +160,7 @@ window.PrintDoc = {
   <style>
     /* ── Reset y base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 13px; }
+    html { font-size: 14px; }
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
       color: #1a2533;
@@ -254,7 +293,7 @@ window.PrintDoc = {
     .spec-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12.5px;
+      font-size: 0.89rem;
     }
     .spec-table thead tr {
       background: #1a3c5e;
@@ -320,7 +359,7 @@ window.PrintDoc = {
       border: 1.5px solid #fde68a;
       border-radius: 8px;
       padding: 12px 16px;
-      font-size: 12.5px;
+      font-size: 0.89rem;
       line-height: 1.65;
       color: #1a2533;
       white-space: pre-wrap;
@@ -356,7 +395,7 @@ window.PrintDoc = {
 
     /* ── MEDIA PRINT ── */
     @media print {
-      html { font-size: 11.5px; }
+      html { font-size: 12px; }
       body { background: white; }
       .doc-page { padding: 0; max-width: 100%; }
       .no-print-notice { display: none !important; }
@@ -386,7 +425,6 @@ window.PrintDoc = {
         </div>
       </div>
       <div class="doc-meta">
-        <strong>Especificaciones de Ornamentación</strong>
         Fecha: ${_esc(fechaDoc)}
       </div>
     </header>
