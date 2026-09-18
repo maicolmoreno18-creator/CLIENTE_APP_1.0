@@ -84,22 +84,37 @@ window.SupabaseUsers = {
   // ── Buscar usuario por login ──────────────────────────────────────────────
   async findByLogin(login) {
     if (!_sbClient) return null;
-    const { data } = await _sbClient
-      .from('usuarios')
-      .select('*')
-      .eq('login', login.trim())
-      .single();
-    return data || null;
+    try {
+      // Timeout de 5 segundos para no bloquear el login si Supabase tarda
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 5000)
+      );
+      const queryPromise = _sbClient
+        .from('usuarios')
+        .select('*')
+        .eq('login', login.trim())
+        .single();
+      const { data } = await Promise.race([queryPromise, timeoutPromise]);
+      return data || null;
+    } catch (e) {
+      console.warn('[Supabase] findByLogin falló (modo offline):', e.message);
+      return null; // cae al fallback local
+    }
   },
 
   // ── Registrar sesión activa (token único por usuario) ─────────────────────
   async registrarSesion(userId) {
     if (!_sbClient) return null;
-    const token = this._uuid();
-    await _sbClient.from('usuarios')
-      .update({ session_token: token, session_at: new Date().toISOString() })
-      .eq('id', userId);
-    return token;
+    try {
+      const token = this._uuid();
+      await _sbClient.from('usuarios')
+        .update({ session_token: token, session_at: new Date().toISOString() })
+        .eq('id', userId);
+      return token;
+    } catch (e) {
+      console.warn('[Supabase] registrarSesion falló (modo offline):', e.message);
+      return null; // no bloquear el login si Supabase no responde
+    }
   },
 
   // ── Verificar si el token sigue siendo válido ─────────────────────────────
@@ -128,18 +143,23 @@ window.SupabaseUsers = {
   // ── Verificar si ya hay sesión activa ─────────────────────────────────────
   async tieneSesionActiva(userId) {
     if (!_sbClient) return false;
-    const { data } = await _sbClient
-      .from('usuarios')
-      .select('session_token, session_at')
-      .eq('id', userId)
-      .single();
-    if (!data?.session_token) return false;
-    // Considerar sesión expirada si tiene más de 8 horas sin actividad
-    if (data.session_at) {
-      const horas = (Date.now() - new Date(data.session_at).getTime()) / 3600000;
-      if (horas > 8) return false;
+    try {
+      const { data } = await _sbClient
+        .from('usuarios')
+        .select('session_token, session_at')
+        .eq('id', userId)
+        .single();
+      if (!data?.session_token) return false;
+      // Considerar sesión expirada si tiene más de 8 horas sin actividad
+      if (data.session_at) {
+        const horas = (Date.now() - new Date(data.session_at).getTime()) / 3600000;
+        if (horas > 8) return false;
+      }
+      return true;
+    } catch (e) {
+      console.warn('[Supabase] tieneSesionActiva falló (modo offline):', e.message);
+      return false; // en caso de error de red, permitir el login
     }
-    return true;
   },
 
   // ── Hash SHA-256 ──────────────────────────────────────────────────────────

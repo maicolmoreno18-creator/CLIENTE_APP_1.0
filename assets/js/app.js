@@ -107,13 +107,13 @@ window.Expediente = {
               <i class="bi bi-pencil me-1"></i>Editar Proyecto
             </button>
             <button class="btn btn-sm btn-outline-primary fw-semibold"
-                    onclick="PrintDoc.imprimir('${proyecto.id}', '${cliente.id}')"
+                    onclick="typeof PrintDoc!=='undefined' ? PrintDoc.imprimir('${proyecto.id}','${cliente.id}') : UI.toast('Recarga la página para activar esta función (Ctrl+Shift+R)','warning',5000)"
                     title="Imprimir especificaciones técnicas (sin precios)">
               <i class="bi bi-printer me-1"></i>Imprimir especificaciones
             </button>
             <button class="btn btn-sm btn-outline-danger fw-semibold"
                     data-pdf-btn="${proyecto.id}"
-                    onclick="PrintDoc.descargarPDF('${proyecto.id}', '${cliente.id}')"
+                    onclick="typeof PrintDoc!=='undefined' ? PrintDoc.descargarPDF('${proyecto.id}','${cliente.id}') : UI.toast('Recarga la página para activar esta función (Ctrl+Shift+R)','warning',5000)"
                     title="Descargar especificaciones en PDF (sin precios)">
               <i class="bi bi-file-earmark-pdf me-1"></i>Descargar PDF
             </button>
