@@ -161,7 +161,7 @@ window.Expediente = {
           <!-- Modelo -->
           <div class="mb-3 p-3 rounded-3 border">
             <div class="text-muted small fw-semibold text-uppercase mb-1">Modelo</div>
-            <div class="fw-semibold">${proyecto.modelo}</div>
+            <div class="fw-semibold">${UI.escapeHTML(proyecto.modelo)}</div>
           </div>
 
           <!-- Especificaciones técnicas -->
@@ -174,7 +174,7 @@ window.Expediente = {
                 <i class="bi bi-sticky-fill text-warning"></i>
                 <span class="fw-semibold small text-uppercase">Notas Técnicas</span>
               </div>
-              <p class="mb-0 small" style="line-height:1.6;">${proyecto.notas}</p>
+              <p class="mb-0 small" style="line-height:1.6;white-space:pre-wrap;word-break:break-word;">${UI.escapeHTML(proyecto.notas)}</p>
             </div>` : ''}
 
           ${!firmado ? `
@@ -444,7 +444,7 @@ window.Expediente = {
                 <i class="bi ${item.icon} mt-1 flex-shrink-0" style="color:#64748b;font-size:13px;"></i>
                 <div class="flex-grow-1">
                   <div class="text-muted" style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">${item.label}</div>
-                  <div class="fw-semibold small">${item.val}</div>
+                  <div class="fw-semibold small">${UI.escapeHTML(item.val)}</div>
                 </div>
               </div>
             </div>`).join('')}
@@ -458,9 +458,10 @@ window.Expediente = {
 
     const color = esp.ornColor === 'Otro' ? (esp.ornColorOtro || '') : (esp.ornColor || '');
     const colorSufijo = color ? ` · Anticorrosivo ${color}` : '';
-    const esMixto    = esp.ornSistema.toLowerCase().includes('mixto');
-    const esAbatible = !esMixto && esp.ornSistema.includes('Apertura');
-    const esCorredizo= !esMixto && esp.ornSistema.toLowerCase().includes('corredizo');
+    const ornLower   = esp.ornSistema.toLowerCase();
+    const esMixto    = ornLower.includes('mixto');
+    const esAbatible = !esMixto && (ornLower.includes('apertura') || ornLower.includes('abatible'));
+    const esCorredizo= !esMixto && ornLower.includes('corrediz');
 
     if (esMixto) {
       // Sistema mixto: mostrar detalle de cada sub-tipo

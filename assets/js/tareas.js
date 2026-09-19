@@ -369,7 +369,7 @@ window.Tareas = {
     sel.innerHTML = '<option value="">Sin cliente</option>' +
       clientes
         .filter(c => !['finalizado','perdido'].includes(c.estado))
-        .map(c => `<option value="${c.id}" ${c.id === selectedId ? 'selected' : ''}>${c.nombre}</option>`)
+        .map(c => `<option value="${c.id}" ${c.id === selectedId ? 'selected' : ''}>${UI.escapeHTML(c.nombre)}</option>`)
         .join('');
   },
 
@@ -448,7 +448,7 @@ window.Tareas = {
                           <i class="bi ${cat.icon}" style="color:${cat.color};"></i>
                         </div>
                         <div class="flex-grow-1 min-w-0">
-                          <div class="fw-semibold small text-truncate">${p.titulo}</div>
+                          <div class="fw-semibold small text-truncate">${UI.escapeHTML(p.titulo)}</div>
                           <div class="d-flex gap-1 mt-1">
                             <span class="badge bg-${prio} bg-opacity-75" style="font-size:10px;">${p.prioridad}</span>
                             <span class="espec-chip py-0" style="font-size:10px;">${cat.label}</span>

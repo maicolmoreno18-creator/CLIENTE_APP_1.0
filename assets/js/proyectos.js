@@ -206,7 +206,6 @@ window.Proyectos = {
     document.getElementById('placaPrecioGroup').classList.add('d-none');
     // Ocultar campos condicionales
     document.getElementById('especCubiertaOtroGroup')?.classList.add('d-none');
-    document.getElementById('especOrnAperturaGroup')?.classList.remove('d-none');
     document.getElementById('especOrnColorOtroGroup')?.classList.add('d-none');
     this._archivosNuevos = [];
     this._renderPreview();
@@ -215,6 +214,8 @@ window.Proyectos = {
     this._bindEstadoSelect();
     Opciones.inicializarSelects(); // cargar opciones personalizadas (incluye obsequios)
     // Para proyecto nuevo no hay obsequios preseleccionados — los checkboxes quedan desmarcados
+    // Proyecto nuevo: sistema de ornamentación vacío → ocultar todos los sub-grupos
+    this._actualizarVisibilidadOrn('');
 
     const expedienteEl = document.getElementById('modalExpediente');
     const expedienteInstance = bootstrap.Modal.getInstance(expedienteEl);
@@ -305,11 +306,10 @@ window.Proyectos = {
     // Mostrar/ocultar campos condicionales (re-evaluar tras cargar opciones)
     document.getElementById('especCubiertaOtroGroup')
       .classList.toggle('d-none', esp.cubierta !== 'Otro');
-    document.getElementById('especOrnAperturaGroup')
-      .classList.toggle('d-none', !esp.ornSistema?.includes('Apertura'));
     document.getElementById('especOrnColorOtroGroup')
       .classList.toggle('d-none', esp.ornColor !== 'Otro');
     // Re-evaluar visibilidad ornamentación completa tras cargar opciones
+    // (_actualizarVisibilidadOrn es la única fuente de verdad para los grupos de ornamentación)
     Proyectos._actualizarVisibilidadOrn(esp.ornSistema || '');
 
     const expedienteEl = document.getElementById('modalExpediente');
@@ -341,9 +341,11 @@ window.Proyectos = {
 
   // ── Mostrar/ocultar sub-campos de ornamentación según el sistema ──────────
   _actualizarVisibilidadOrn(sistema) {
-    const esMixto     = sistema.toLowerCase().includes('mixto');
-    const esAbatible  = !esMixto && sistema.includes('Apertura');
-    const esCorredizo = !esMixto && sistema.toLowerCase().includes('corredizo');
+    // Misma lógica de detección que guardar() y _ornLabel (todo en minúsculas)
+    const ornLower    = (sistema || '').toLowerCase();
+    const esMixto     = ornLower.includes('mixto');
+    const esAbatible  = !esMixto && (ornLower.includes('apertura') || ornLower.includes('abatible'));
+    const esCorredizo = !esMixto && ornLower.includes('corrediz');
 
     const toggle = (id, visible) => {
       const el = document.getElementById(id);
@@ -411,9 +413,12 @@ window.Proyectos = {
     const cubierta    = document.getElementById('especCubierta').value;
     const ornSistema  = document.getElementById('especOrnSistema').value;
     const ornColor    = document.getElementById('especOrnColor').value;
-    const esMixto     = ornSistema.toLowerCase().includes('mixto');
-    const esAbatible  = !esMixto && ornSistema.includes('Apertura');
-    const esCorredizo = !esMixto && ornSistema.includes('Corredizo');
+    // Detección de tipo consistente con _actualizarVisibilidadOrn y _ornLabel
+    // (todo en minúsculas para soportar opciones personalizadas del usuario)
+    const ornLower    = ornSistema.toLowerCase();
+    const esMixto     = ornLower.includes('mixto');
+    const esAbatible  = !esMixto && (ornLower.includes('apertura') || ornLower.includes('abatible'));
+    const esCorredizo = !esMixto && ornLower.includes('corrediz');
 
     const especificaciones = {
       sistema:       document.getElementById('especSistema').value,
@@ -678,13 +683,13 @@ window.Proyectos = {
         <div class="col-6 col-sm-4 col-md-3">
           <div class="archivo-thumb">
             ${esImagen
-              ? `<img src="${a.data}" alt="${a.nombre}" />`
+              ? `<img src="${a.data}" alt="${UI.escapeHTML(a.nombre)}" />`
               : `<div class="archivo-pdf">
                    <i class="bi bi-file-earmark-pdf fs-2"></i>
                    <span class="small fw-semibold">PDF</span>
                  </div>`
             }
-            <div class="archivo-info" title="${a.nombre}">${a.nombre}</div>
+            <div class="archivo-info" title="${UI.escapeHTML(a.nombre)}">${UI.escapeHTML(a.nombre)}</div>
             <button class="btn-remove" onclick="Proyectos._eliminarArchivo(${i})" title="Eliminar">
               <i class="bi bi-x"></i>
             </button>
@@ -793,7 +798,7 @@ window.Proyectos = {
           </button>` : ''}
 
           <!-- Imagen -->
-          <img src="${archivo.data}" alt="${archivo.nombre}"
+          <img src="${archivo.data}" alt="${UI.escapeHTML(archivo.nombre)}"
                id="lbImagen"
                onclick="event.stopPropagation(); Proyectos._toggleZoom(this);"
                style="animation:fadeInUp 0.2s ease; position:relative; z-index:2;" />
@@ -804,7 +809,7 @@ window.Proyectos = {
           </button>` : ''}
 
           <!-- Caption -->
-          <div class="lb-caption">${archivo.nombre}</div>
+          <div class="lb-caption">${UI.escapeHTML(archivo.nombre)}</div>
         </div>`;
 
       document.body.insertAdjacentHTML('beforeend', html);
@@ -813,7 +818,8 @@ window.Proyectos = {
       document.getElementById('lbPrint')?.addEventListener('click', (e) => {
         e.stopPropagation();
         const win = window.open('', '_blank');
-        win.document.write(`<!DOCTYPE html><html><head><title>${archivo.nombre}</title>
+        const nombreSeguro = UI.escapeHTML(archivo.nombre);
+        win.document.write(`<!DOCTYPE html><html><head><title>${nombreSeguro}</title>
           <style>
             * { margin:0; padding:0; box-sizing:border-box; }
             body { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; background:white; padding:16px; }
@@ -822,8 +828,8 @@ window.Proyectos = {
             @media print { body { display:block; } img { width:100%; height:auto; } }
           </style></head>
           <body>
-            <img src="${archivo.data}" alt="${archivo.nombre}" />
-            <p>${archivo.nombre}</p>
+            <img src="${archivo.data}" alt="${nombreSeguro}" />
+            <p>${nombreSeguro}</p>
             <script>window.onload=()=>{window.print();window.onafterprint=()=>window.close();}<\/script>
           </body></html>`);
         win.document.close();

@@ -311,7 +311,7 @@ window.Finanzas = {
               <div class="card-body p-3">
                 <div class="d-flex align-items-start justify-content-between mb-2">
                   <div>
-                    <div class="fw-bold small">${p.descripcion}</div>
+                    <div class="fw-bold small">${UI.escapeHTML(p.descripcion)}</div>
                     <div class="text-muted" style="font-size:11px;">${UI.formatDate(p.fecha)}</div>
                   </div>
                   <div class="d-flex gap-1">
@@ -478,7 +478,7 @@ window.Finanzas = {
         const totalAbonado = abonos.filter(a => a.prestamoId === p.id).reduce((s, a) => s + (a.monto || 0), 0);
         const saldo = Math.max(0, p.monto - totalAbonado);
         return `<option value="${p.id}" data-saldo="${saldo}" ${p.id === prestamoIdPreseleccionado ? 'selected' : ''}>
-          ${p.descripcion} — Saldo: ${UI.formatCurrency(saldo)}
+          ${UI.escapeHTML(p.descripcion)} — Saldo: ${UI.formatCurrency(saldo)}
         </option>`;
       }).join('');
 
@@ -563,7 +563,7 @@ window.Finanzas = {
     sel.innerHTML = conSaldo.map(p => {
       const totalAbonado = abonos.filter(a => a.prestamoId === p.id).reduce((s, a) => s + (a.monto || 0), 0);
       const saldo = p.monto - totalAbonado;
-      return `<option value="${p.id}" data-saldo="${saldo}">${p.descripcion} — Saldo: ${UI.formatCurrency(saldo)}</option>`;
+      return `<option value="${p.id}" data-saldo="${saldo}">${UI.escapeHTML(p.descripcion)} — Saldo: ${UI.formatCurrency(saldo)}</option>`;
     }).join('');
 
     // Mes actual

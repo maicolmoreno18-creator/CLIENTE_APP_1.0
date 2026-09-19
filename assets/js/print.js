@@ -31,9 +31,10 @@ window.PrintDoc = {
 
       const color      = esp.ornColor === 'Otro' ? (esp.ornColorOtro || '') : (esp.ornColor || '');
       const colorSufijo = color ? ` · Anticorrosivo ${color}` : '';
-      const esMixto    = esp.ornSistema.toLowerCase().includes('mixto');
-      const esAbatible = !esMixto && esp.ornSistema.includes('Apertura');
-      const esCorredizo= !esMixto && esp.ornSistema.toLowerCase().includes('corredizo');
+      const ornLower   = esp.ornSistema.toLowerCase();
+      const esMixto    = ornLower.includes('mixto');
+      const esAbatible = !esMixto && (ornLower.includes('apertura') || ornLower.includes('abatible'));
+      const esCorredizo= !esMixto && ornLower.includes('corrediz');
 
       if (esMixto) {
         const partes = [esp.ornSistema];
@@ -470,11 +471,27 @@ window.PrintDoc = {
       }
       win.document.write(html);
       win.document.close();
-      // Esperar carga completa antes de abrir diálogo de impresión
-      win.addEventListener('load', () => {
-        win.focus();
-        win.print();
-      });
+
+      // Lanzar el diálogo de impresión de forma robusta.
+      // El documento se escribe de forma síncrona, así que el evento 'load'
+      // puede haber disparado ya; por eso no dependemos solo del listener.
+      let impreso = false;
+      const lanzarImpresion = () => {
+        if (impreso) return;      // evitar doble llamada
+        impreso = true;
+        try { win.focus(); win.print(); } catch (e) { /* ventana cerrada por el usuario */ }
+      };
+
+      // Respaldo por si el evento load aún no ocurrió
+      win.addEventListener('load', lanzarImpresion);
+      // Si el documento ya está completo, imprimir tras un breve delay para
+      // dar tiempo al render (fuentes, layout). Cubre el caso síncrono.
+      if (win.document.readyState === 'complete') {
+        setTimeout(lanzarImpresion, 350);
+      } else {
+        // Fallback duro por si 'load' nunca llega en algunos navegadores
+        setTimeout(lanzarImpresion, 800);
+      }
 
     } catch (err) {
       console.error('[PrintDoc] Error al imprimir:', err);
@@ -606,28 +623,38 @@ window.PrintDoc = {
     }
   },
 
+  // ── Cargar un script probando primero local, luego CDN como respaldo ─────
+  _cargarScript(rutaLocal, rutaCDN, yaCargado) {
+    return new Promise((resolve, reject) => {
+      if (yaCargado()) { resolve(); return; }
+      const intentar = (src, onFail) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload  = resolve;
+        s.onerror = onFail;
+        document.head.appendChild(s);
+      };
+      // 1) copia local (funciona offline) → 2) CDN si la local falla
+      intentar(rutaLocal, () => intentar(rutaCDN, reject));
+    });
+  },
+
   // ── Cargar jsPDF dinámicamente si no está disponible ─────────────────────
   _cargarJsPDF() {
-    return new Promise((resolve, reject) => {
-      if (window.jspdf?.jsPDF || window.jsPDF) { resolve(); return; }
-      const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-      s.onload  = resolve;
-      s.onerror = reject;
-      document.head.appendChild(s);
-    });
+    return this._cargarScript(
+      'assets/vendor/jspdf.umd.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+      () => !!(window.jspdf?.jsPDF || window.jsPDF)
+    );
   },
 
   // ── Cargar html2canvas dinámicamente si no está disponible ───────────────
   _cargarHtml2Canvas() {
-    return new Promise((resolve, reject) => {
-      if (window.html2canvas) { resolve(); return; }
-      const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-      s.onload  = resolve;
-      s.onerror = reject;
-      document.head.appendChild(s);
-    });
+    return this._cargarScript(
+      'assets/vendor/html2canvas.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+      () => !!window.html2canvas
+    );
   },
 
   // ── Sanitizar nombre de archivo ───────────────────────────────────────────

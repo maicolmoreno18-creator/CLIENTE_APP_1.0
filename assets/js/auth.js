@@ -6,6 +6,8 @@
 
 const SESSION_KEY = 'clienteapp_session';
 const LOCK_KEY    = 'clienteapp_login_lock';
+// Duración máxima de una sesión local antes de exigir login de nuevo (8 horas)
+const SESSION_MAX_MS = 8 * 60 * 60 * 1000;
 
 window.Auth = {
 
@@ -166,16 +168,24 @@ window.Auth = {
     localStorage.removeItem(SESSION_KEY);
     sessionStorage.removeItem(SESSION_KEY);
 
+    // Recargar UNA sola vez, gane quien gane la carrera (respuesta de Supabase o timeout)
+    let recargado = false;
+    const recargarUnaVez = () => {
+      if (recargado) return;
+      recargado = true;
+      location.reload();
+    };
+
     if (session?.id) {
       const presencia = JSON.parse(localStorage.getItem('clienteapp_presencia') || '{}');
       delete presencia[session.id];
       localStorage.setItem('clienteapp_presencia', JSON.stringify(presencia));
       // Cerrar sesión en Supabase en segundo plano; recargar sin esperar la red
-      SupabaseUsers.cerrarSesion(session.id).finally(() => location.reload());
-      // Si Supabase tarda, recargar de todas formas tras 1.5s
-      setTimeout(() => location.reload(), 1500);
+      SupabaseUsers.cerrarSesion(session.id).finally(recargarUnaVez);
+      // Si Supabase tarda, recargar de todas formas tras 1.5s (lo que ocurra primero)
+      setTimeout(recargarUnaVez, 1500);
     } else {
-      location.reload();
+      recargarUnaVez();
     }
   },
 
@@ -190,7 +200,22 @@ window.Auth = {
         // Migrar sesión vieja de sessionStorage a localStorage
         if (raw) localStorage.setItem(SESSION_KEY, raw);
       }
-      return raw ? JSON.parse(raw) : null;
+      if (!raw) return null;
+
+      const session = JSON.parse(raw);
+
+      // ── Caducidad: expira 8 horas después del login ──────────────────────
+      if (session?.loginTime) {
+        const edadMs = Date.now() - new Date(session.loginTime).getTime();
+        if (edadMs > SESSION_MAX_MS) {
+          // Sesión vencida → limpiar y forzar nuevo login
+          localStorage.removeItem(SESSION_KEY);
+          sessionStorage.removeItem(SESSION_KEY);
+          return null;
+        }
+      }
+
+      return session;
     } catch { return null; }
   },
 

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Generador de íconos PNG — ClienteAPP</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f1f30; color: #e8f0f8;
+           display: flex; flex-direction: column; align-items: center; padding: 40px 20px; gap: 24px; }
+    h1 { font-size: 20px; margin: 0; }
+    p  { color: #8ab4d0; max-width: 560px; text-align: center; line-height: 1.6; margin: 0; }
+    .previews { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; }
+    .card { background: #1a3c5e; border-radius: 14px; padding: 20px; text-align: center; }
+    .card canvas { border-radius: 12px; background: #0a1628; display: block; margin: 0 auto 12px; }
+    button { background: linear-gradient(135deg,#2d6a9f,#1a3c5e); color: white; border: none;
+             border-radius: 10px; padding: 10px 20px; font-weight: 600; cursor: pointer; font-size: 14px; }
+    button:hover { filter: brightness(1.15); }
+    .ok { color: #10b981; font-weight: 600; }
+    code { background: #0a1628; padding: 2px 8px; border-radius: 6px; color: #7dd4ff; }
+  </style>
+</head>
+<body>
+  <h1>🎨 Generador de íconos PNG</h1>
+  <p>Esta página convierte el ícono SVG de la app a PNG en los tamaños que necesita la PWA.
+     Haz clic en cada botón para descargar el archivo, y luego <strong>mueve los PNG descargados a la
+     carpeta <code>assets/img/</code></strong> del proyecto.</p>
+
+  <div class="previews" id="previews"></div>
+
+  <p style="font-size:13px;opacity:0.7;">Sugerencia: los archivos se descargan con el nombre correcto
+     (<code>icon-192.png</code> y <code>icon-512.png</code>). Solo arrástralos a <code>assets/img/</code>.</p>
+
+  <script>
+    const SVG_URL = 'assets/img/icon-192.svg';
+    const SIZES = [192, 512];
+
+    async function cargarSVG() {
+      const resp = await fetch(SVG_URL);
+      const svgText = await resp.text();
+      const blob = new Blob([svgText], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+      URL.revokeObjectURL(url);
+      return img;
+    }
+
+    async function init() {
+      const img = await cargarSVG();
+      const cont = document.getElementById('previews');
+
+      SIZES.forEach(size => {
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, size, size);
+        ctx.drawImage(img, 0, 0, size, size);
+
+        // Preview a tamaño reducido
+        const preview = document.createElement('canvas');
+        const previewSize = Math.min(size, 160);
+        preview.width = previewSize; preview.height = previewSize;
+        preview.getContext('2d').drawImage(canvas, 0, 0, previewSize, previewSize);
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        const fileName = `icon-${size}.png`;
+        card.appendChild(preview);
+        const label = document.createElement('div');
+        label.style.marginBottom = '10px';
+        label.style.fontSize = '13px';
+        label.textContent = `${size} × ${size} px`;
+        card.appendChild(label);
+
+        const btn = document.createElement('button');
+        btn.textContent = `⬇ Descargar ${fileName}`;
+        btn.onclick = () => {
+          canvas.toBlob(blob => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            btn.textContent = `✓ ${fileName} descargado`;
+            btn.classList.add('ok');
+          }, 'image/png');
+        };
+        card.appendChild(btn);
+        cont.appendChild(card);
+      });
+    }
+
+    init().catch(err => {
+      document.body.insertAdjacentHTML('beforeend',
+        `<p style="color:#ef4444;">Error: ${err.message}. Abre esta página con un servidor local (Live Server), no con doble clic.</p>`);
+    });
+  </script>
+</body>
+</html>
