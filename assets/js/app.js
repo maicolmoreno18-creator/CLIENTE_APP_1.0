@@ -570,8 +570,9 @@ window.App = {
       await DB.migrateArchivos();
 
       // Supabase — solo usuarios (compartido entre equipos)
+      // El seed corre en segundo plano para NO bloquear el arranque si la red tarda.
       SupabaseUsers.init();
-      await SupabaseUsers.seed();
+      SupabaseUsers.seed().catch(e => console.warn('[App] Supabase seed en segundo plano:', e?.message));
 
       // Auto-guardado en disco — reconectar carpeta si ya fue configurada
       if (AutoSave.isSupported()) {

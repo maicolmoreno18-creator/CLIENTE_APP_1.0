@@ -26,7 +26,11 @@ window.SupabaseUsers = {
   async seed() {
     if (!_sbClient) return;
     try {
-      const { data } = await _sbClient.from('usuarios').select('id').limit(1);
+      const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000));
+      const { data } = await Promise.race([
+        _sbClient.from('usuarios').select('id').limit(1),
+        timeout
+      ]);
       if (data && data.length === 0) {
         const hash = await this._hash('admin123');
         await _sbClient.from('usuarios').insert({

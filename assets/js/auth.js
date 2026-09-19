@@ -130,7 +130,8 @@ window.Auth = {
       sessionToken
     };
 
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    // Guardar sesión en localStorage (persiste entre recargas y cierres de pestaña)
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 
     // Registrar presencia en línea
     const presencia = JSON.parse(localStorage.getItem('clienteapp_presencia') || '{}');
@@ -161,16 +162,19 @@ window.Auth = {
   // ── Logout ────────────────────────────────────────────────────────────────
   logout() {
     const session = this.getSession();
+    // Limpiar sesión local SIEMPRE primero (en localStorage y sessionStorage por compatibilidad)
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+
     if (session?.id) {
-      SupabaseUsers.cerrarSesion(session.id).finally(() => {
-        const presencia = JSON.parse(localStorage.getItem('clienteapp_presencia') || '{}');
-        delete presencia[session.id];
-        localStorage.setItem('clienteapp_presencia', JSON.stringify(presencia));
-        sessionStorage.removeItem(SESSION_KEY);
-        location.reload();
-      });
+      const presencia = JSON.parse(localStorage.getItem('clienteapp_presencia') || '{}');
+      delete presencia[session.id];
+      localStorage.setItem('clienteapp_presencia', JSON.stringify(presencia));
+      // Cerrar sesión en Supabase en segundo plano; recargar sin esperar la red
+      SupabaseUsers.cerrarSesion(session.id).finally(() => location.reload());
+      // Si Supabase tarda, recargar de todas formas tras 1.5s
+      setTimeout(() => location.reload(), 1500);
     } else {
-      sessionStorage.removeItem(SESSION_KEY);
       location.reload();
     }
   },
@@ -178,7 +182,14 @@ window.Auth = {
   // ── Sesión actual ─────────────────────────────────────────────────────────
   getSession() {
     try {
-      const raw = sessionStorage.getItem(SESSION_KEY);
+      // Preferir localStorage (persistente). Fallback a sessionStorage por si
+      // quedó una sesión de la versión anterior.
+      let raw = localStorage.getItem(SESSION_KEY);
+      if (!raw) {
+        raw = sessionStorage.getItem(SESSION_KEY);
+        // Migrar sesión vieja de sessionStorage a localStorage
+        if (raw) localStorage.setItem(SESSION_KEY, raw);
+      }
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   },
