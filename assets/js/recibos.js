@@ -108,12 +108,12 @@ window.Recibos = {
   html { font-size: 16px; }
   body { font-family:'Segoe UI', Arial, sans-serif; color:#1a2533; background:#fff; line-height:1.5; }
 
-  .recibo { max-width: 760px; margin:0 auto; padding: 24px 30px; }
+  .recibo { max-width: 760px; margin:0 auto; padding: 18px 30px; }
 
   /* Encabezado */
   .r-header {
     display:flex; align-items:center; justify-content:space-between; gap:16px;
-    border-bottom: 3px solid #d0021b; padding-bottom: 14px; margin-bottom: 18px;
+    border-bottom: 3px solid #d0021b; padding-bottom: 12px; margin-bottom: 14px;
   }
   .r-empresa { display:flex; align-items:center; gap:14px; }
   .r-logo { width:150px; height:auto; flex-shrink:0; }
@@ -129,10 +129,10 @@ window.Recibos = {
   .r-doc .fecha { font-size:13px; color:#666; }
 
   /* Secciones */
-  .r-sec { margin-bottom: 16px; }
+  .r-sec { margin-bottom: 11px; }
   .r-sec-titulo {
     font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px;
-    color:#1a3c8f; border-bottom:1.5px solid #e2e8f0; padding-bottom:5px; margin-bottom:9px;
+    color:#1a3c8f; border-bottom:1.5px solid #e2e8f0; padding-bottom:4px; margin-bottom:7px;
   }
   .r-grid { display:grid; grid-template-columns: 1fr 1fr; gap:6px 20px; font-size:14.5px; }
   .r-linea { display:flex; gap:6px; }
@@ -142,7 +142,7 @@ window.Recibos = {
 
   /* Tabla especificaciones */
   table.espec { width:100%; border-collapse:collapse; font-size:14.5px; }
-  table.espec td { padding:7px 8px; border-bottom:1px solid #eef2f6; }
+  table.espec td { padding:5px 8px; border-bottom:1px solid #eef2f6; }
   table.espec td.k { color:#64748b; font-weight:600; width:42%; }
   table.espec td.v { color:#1a2533; font-weight:600; }
   table.espec td.empty { color:#94a3b8; font-style:italic; text-align:center; }
@@ -150,7 +150,7 @@ window.Recibos = {
   /* Bloque valor recibido (destacado) */
   .r-valor {
     background:linear-gradient(135deg,#fff5f5,#fef2f2); border:2px solid #d0021b;
-    border-radius:10px; padding:16px 18px; margin:16px 0; text-align:center;
+    border-radius:10px; padding:12px 18px; margin:12px 0; text-align:center;
   }
   .r-valor .lbl { font-size:14px; color:#991b1b; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
   .r-valor .monto { font-size:36px; font-weight:900; color:#d0021b; line-height:1.1; margin:3px 0; }
@@ -169,20 +169,20 @@ window.Recibos = {
   .box.saldo { background:#fffbeb; } .box.saldo .n { color:#d97706; }
 
   /* Firma (una sola, centrada) */
-  .r-firmas { display:flex; justify-content:center; margin-top:70px; }
+  .r-firmas { display:flex; justify-content:center; margin-top:44px; }
   .r-firma { width:320px; max-width:60%; text-align:center; position:relative; }
   /* Espacio real para firmar a mano encima de la línea */
-  .r-firma .espacio { height:60px; }
+  .r-firma .espacio { height:48px; }
   .r-firma .linea { border-top:1.5px solid #1a2533; margin-bottom:5px; }
   .r-firma .rol { font-size:13px; font-weight:700; color:#1a2533; }
   .r-firma .sub { font-size:12px; color:#666; }
-  /* Sello de la empresa (solo en PDF) — efecto estampado */
+  /* Sello de la empresa (solo en PDF) — efecto estampado, derecho */
   .r-firma .sello {
     position:absolute;
-    top:-18px; left:50%;
-    transform:translateX(-50%) rotate(-7deg);
-    width:200px; height:auto;
-    opacity:0.78;
+    top:-14px; left:50%;
+    transform:translateX(-50%) rotate(-1.5deg);
+    width:185px; height:auto;
+    opacity:0.8;
     mix-blend-mode:multiply;
     pointer-events:none;
   }
@@ -420,21 +420,24 @@ window.Recibos = {
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
       const margin = 10;
-      const imgW = pageW - margin * 2;
-      const imgH = (canvas.height * imgW) / canvas.width;
+      const maxW = pageW - margin * 2;
+      const maxH = pageH - margin * 2;
 
-      let remainH = imgH, yOffset = margin;
-      while (remainH > 0) {
-        const sliceH = Math.min(remainH, pageH - margin * 2);
-        const srcY = (imgH - remainH) * (canvas.height / imgH);
-        const srcH = sliceH * (canvas.height / imgH);
-        const sc = document.createElement('canvas');
-        sc.width = canvas.width; sc.height = srcH;
-        sc.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
-        pdf.addImage(sc.toDataURL('image/jpeg', 0.92), 'JPEG', margin, yOffset, imgW, sliceH);
-        remainH -= sliceH; yOffset = margin;
-        if (remainH > 0) pdf.addPage();
+      // Dimensiones "naturales" respetando el ancho disponible
+      let imgW = maxW;
+      let imgH = (canvas.height * imgW) / canvas.width;
+
+      // Si el alto supera la página, escalar TODO para que quepa en una sola hoja
+      if (imgH > maxH) {
+        const escala = maxH / imgH;
+        imgH = maxH;
+        imgW = imgW * escala;
       }
+
+      // Centrar horizontalmente el contenido escalado
+      const xOffset = (pageW - imgW) / 2;
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      pdf.addImage(imgData, 'JPEG', xOffset, margin, imgW, imgH);
 
       pdf.save(fileName);
       UI.toast(`Recibo descargado: ${fileName}`, 'success');
