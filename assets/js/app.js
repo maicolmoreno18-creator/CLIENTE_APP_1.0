@@ -623,9 +623,8 @@ window.App = {
     document.getElementById('sidebarUserRole').textContent = Auth.getRoleName(session?.rol || '');
     document.getElementById('sidebarAvatar').textContent   = UI.initials(nombreDisplay);
 
-    // Aplicar preferencias guardadas (privacidad de dinero + tema)
+    // Aplicar preferencia guardada de privacidad de valores en dinero
     MoneyPrivacy.aplicar();
-    Tema.aplicar();
 
     this.navigate('dashboard');
     this.updateBadges();
@@ -831,11 +830,6 @@ window.App = {
     // Ocultar/mostrar valores en dinero (toggle "ojito")
     document.getElementById('btnToggleMoney')?.addEventListener('click', () => {
       MoneyPrivacy.toggle();
-    });
-
-    // Cambiar tema claro/oscuro
-    document.getElementById('btnToggleTema')?.addEventListener('click', () => {
-      Tema.toggle();
     });
   },
 

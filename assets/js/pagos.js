@@ -407,8 +407,13 @@ window.Pagos = {
             ${(p.valorPagado > 0) ? `
             <button class="btn btn-sm btn-outline-secondary fw-semibold"
                     style="border-radius:8px;font-size:11px;padding:4px 9px;white-space:nowrap;"
-                    onclick="Recibos.imprimirEtapa('${p.id}')" title="Recibo de la etapa">
+                    onclick="Recibos.imprimirEtapa('${p.id}')" title="Imprimir recibo de la etapa">
               <i class="bi bi-receipt"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger fw-semibold"
+                    style="border-radius:8px;font-size:11px;padding:4px 9px;white-space:nowrap;"
+                    onclick="Recibos.descargarEtapaPDF('${p.id}')" title="Descargar recibo en PDF">
+              <i class="bi bi-file-earmark-pdf"></i>
             </button>` : ''}
             <button class="btn btn-sm fw-semibold"
                     style="border-radius:8px;background:${cfg.color};color:white;border:none;
