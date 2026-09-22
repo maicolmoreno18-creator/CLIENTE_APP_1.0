@@ -593,6 +593,8 @@ window.App = {
       this._checkReminders();
       // Verificar notificaciones de pagos al iniciar (con delay para no interrumpir el login)
       setTimeout(() => this._checkNotificacionesPagos(), 3000);
+      // Recordatorio de backup (con delay para no saturar el inicio)
+      setTimeout(() => this._checkBackupReminder(), 5000);
 
     } catch (err) {
       console.error('[App] Error al inicializar:', err);
@@ -621,8 +623,9 @@ window.App = {
     document.getElementById('sidebarUserRole').textContent = Auth.getRoleName(session?.rol || '');
     document.getElementById('sidebarAvatar').textContent   = UI.initials(nombreDisplay);
 
-    // Aplicar preferencia guardada de privacidad de valores en dinero
+    // Aplicar preferencias guardadas (privacidad de dinero + tema)
     MoneyPrivacy.aplicar();
+    Tema.aplicar();
 
     this.navigate('dashboard');
     this.updateBadges();
@@ -829,6 +832,11 @@ window.App = {
     document.getElementById('btnToggleMoney')?.addEventListener('click', () => {
       MoneyPrivacy.toggle();
     });
+
+    // Cambiar tema claro/oscuro
+    document.getElementById('btnToggleTema')?.addEventListener('click', () => {
+      Tema.toggle();
+    });
   },
 
   // ── Mostrar/ocultar sección TOTP según estado de bloqueo ────────────────
@@ -884,6 +892,41 @@ window.App = {
         await DB.put(DB.STORES.seguimientos, s);
       }
     }
+  },
+
+  // ── Recordatorio de backup ────────────────────────────────────────────────
+  async _checkBackupReminder() {
+    const DIAS_LIMITE = 7;
+
+    // Si el auto-guardado a disco está activo, los datos ya se respaldan solos → no molestar
+    if (window.AutoSave && AutoSave.estaConectado && AutoSave.estaConectado()) return;
+
+    // Si no hay datos aún, no tiene sentido pedir backup
+    const clientes = await DB.getAll(DB.STORES.clientes);
+    if (clientes.length === 0) return;
+
+    const ultimo = localStorage.getItem('clienteapp_ultimo_backup');
+
+    // Evitar mostrar el aviso más de una vez por día
+    const hoyStr = new Date().toISOString().split('T')[0];
+    if (localStorage.getItem('clienteapp_backup_aviso_dia') === hoyStr) return;
+
+    let diasSin;
+    if (!ultimo) {
+      diasSin = null; // nunca ha hecho backup
+    } else {
+      diasSin = Math.floor((Date.now() - new Date(ultimo).getTime()) / 86400000);
+      if (diasSin < DIAS_LIMITE) return; // backup reciente, no molestar
+    }
+
+    // Marcar que ya avisamos hoy
+    localStorage.setItem('clienteapp_backup_aviso_dia', hoyStr);
+
+    const mensaje = diasSin === null
+      ? 'Aún no has hecho una copia de seguridad. Ve a Configuración → Exportar para proteger tus datos.'
+      : `Hace ${diasSin} días que no haces copia de seguridad. Ve a Configuración → Exportar para proteger tus datos.`;
+
+    UI.toast(mensaje, 'warning', 9000);
   },
 
   // ── Notificaciones inteligentes de pagos ──────────────────────────────────

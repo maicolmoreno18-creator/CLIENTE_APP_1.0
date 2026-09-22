@@ -157,6 +157,9 @@ window.AutoSave = {
       await writable.write(JSON.stringify(backup, null, 2));
       await writable.close();
 
+      // Registrar fecha del último respaldo (cuenta para el recordatorio de backup)
+      localStorage.setItem('clienteapp_ultimo_backup', new Date().toISOString());
+
       console.log('[AutoSave] Guardado:', new Date().toLocaleTimeString());
     } catch (e) {
       console.error('[AutoSave] Error al guardar:', e);

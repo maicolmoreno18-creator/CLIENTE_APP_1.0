@@ -101,7 +101,7 @@ window.Recibos = {
 <title>Recibo ${esc(d.numRecibo)} — ${esc(d.cliente.nombre)}</title>
 <style>
   *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-  html { font-size: 14px; }
+  html { font-size: 16px; }
   body { font-family:'Segoe UI', Arial, sans-serif; color:#1a2533; background:#fff; line-height:1.5; }
 
   .recibo { max-width: 760px; margin:0 auto; padding: 24px 30px; }
@@ -109,36 +109,36 @@ window.Recibos = {
   /* Encabezado */
   .r-header {
     display:flex; align-items:center; justify-content:space-between; gap:16px;
-    border-bottom: 3px solid #d0021b; padding-bottom: 14px; margin-bottom: 16px;
+    border-bottom: 3px solid #d0021b; padding-bottom: 14px; margin-bottom: 18px;
   }
   .r-empresa { display:flex; align-items:center; gap:14px; }
-  .r-logo { width:96px; height:auto; flex-shrink:0; }
-  .r-empresa-info h1 { font-size:17px; font-weight:800; color:#d0021b; letter-spacing:0.3px; }
-  .r-empresa-info .lema { font-size:12px; color:#1a3c8f; font-weight:600; margin-bottom:2px; }
-  .r-empresa-info .dato { font-size:10.5px; color:#555; line-height:1.35; }
+  .r-logo { width:150px; height:auto; flex-shrink:0; }
+  .r-empresa-info h1 { font-size:20px; font-weight:800; color:#d0021b; letter-spacing:0.3px; }
+  .r-empresa-info .lema { font-size:14px; color:#1a3c8f; font-weight:600; margin-bottom:2px; }
+  .r-empresa-info .dato { font-size:12px; color:#555; line-height:1.4; }
   .r-doc { text-align:right; flex-shrink:0; }
   .r-doc .titulo {
-    background:#d0021b; color:#fff; font-size:14px; font-weight:800;
-    padding:5px 14px; border-radius:6px; letter-spacing:0.5px; display:inline-block; margin-bottom:6px;
+    background:#d0021b; color:#fff; font-size:16px; font-weight:800;
+    padding:6px 16px; border-radius:6px; letter-spacing:0.5px; display:inline-block; margin-bottom:6px;
   }
-  .r-doc .num { font-size:12px; color:#1a2533; font-weight:700; }
-  .r-doc .fecha { font-size:11px; color:#666; }
+  .r-doc .num { font-size:14px; color:#1a2533; font-weight:700; }
+  .r-doc .fecha { font-size:13px; color:#666; }
 
   /* Secciones */
-  .r-sec { margin-bottom: 14px; }
+  .r-sec { margin-bottom: 16px; }
   .r-sec-titulo {
-    font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px;
-    color:#1a3c8f; border-bottom:1.5px solid #e2e8f0; padding-bottom:4px; margin-bottom:8px;
+    font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px;
+    color:#1a3c8f; border-bottom:1.5px solid #e2e8f0; padding-bottom:5px; margin-bottom:9px;
   }
-  .r-grid { display:grid; grid-template-columns: 1fr 1fr; gap:4px 20px; font-size:12.5px; }
+  .r-grid { display:grid; grid-template-columns: 1fr 1fr; gap:6px 20px; font-size:14.5px; }
   .r-linea { display:flex; gap:6px; }
   .r-linea .lbl { color:#64748b; font-weight:600; white-space:nowrap; }
   .r-linea .val { color:#1a2533; font-weight:600; }
   .r-full { grid-column: 1 / -1; }
 
   /* Tabla especificaciones */
-  table.espec { width:100%; border-collapse:collapse; font-size:12.5px; }
-  table.espec td { padding:5px 8px; border-bottom:1px solid #eef2f6; }
+  table.espec { width:100%; border-collapse:collapse; font-size:14.5px; }
+  table.espec td { padding:7px 8px; border-bottom:1px solid #eef2f6; }
   table.espec td.k { color:#64748b; font-weight:600; width:42%; }
   table.espec td.v { color:#1a2533; font-weight:600; }
   table.espec td.empty { color:#94a3b8; font-style:italic; text-align:center; }
@@ -146,41 +146,41 @@ window.Recibos = {
   /* Bloque valor recibido (destacado) */
   .r-valor {
     background:linear-gradient(135deg,#fff5f5,#fef2f2); border:2px solid #d0021b;
-    border-radius:10px; padding:14px 18px; margin:14px 0; text-align:center;
+    border-radius:10px; padding:16px 18px; margin:16px 0; text-align:center;
   }
-  .r-valor .lbl { font-size:12px; color:#991b1b; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
-  .r-valor .monto { font-size:30px; font-weight:900; color:#d0021b; line-height:1.1; margin:2px 0; }
-  .pago-linea { font-size:12px; color:#555; margin-top:3px; }
+  .r-valor .lbl { font-size:14px; color:#991b1b; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+  .r-valor .monto { font-size:36px; font-weight:900; color:#d0021b; line-height:1.1; margin:3px 0; }
+  .pago-linea { font-size:14px; color:#555; margin-top:4px; }
   .pago-linea span { color:#64748b; }
 
   /* Estado de la etapa */
   .r-estado {
     display:grid; grid-template-columns: repeat(3,1fr); gap:8px; margin-top:6px;
   }
-  .r-estado .box { text-align:center; border-radius:8px; padding:8px 6px; border:1px solid #e2e8f0; }
-  .r-estado .box .n { font-size:13px; font-weight:800; }
-  .r-estado .box .t { font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:0.4px; }
+  .r-estado .box { text-align:center; border-radius:8px; padding:10px 6px; border:1px solid #e2e8f0; }
+  .r-estado .box .n { font-size:15px; font-weight:800; }
+  .r-estado .box .t { font-size:11.5px; color:#64748b; text-transform:uppercase; letter-spacing:0.4px; }
   .box.total { background:#eff6ff; } .box.total .n { color:#1a3c8f; }
   .box.abon  { background:#f0fdf4; } .box.abon .n { color:#16a34a; }
   .box.saldo { background:#fffbeb; } .box.saldo .n { color:#d97706; }
 
-  /* Firmas */
-  .r-firmas { display:flex; justify-content:space-between; gap:50px; margin-top:80px; }
-  .r-firma { flex:1; text-align:center; }
+  /* Firma (una sola, centrada) */
+  .r-firmas { display:flex; justify-content:center; margin-top:70px; }
+  .r-firma { width:320px; max-width:60%; text-align:center; }
   /* Espacio real para firmar a mano encima de la línea */
-  .r-firma .espacio { height:70px; }
+  .r-firma .espacio { height:60px; }
   .r-firma .linea { border-top:1.5px solid #1a2533; margin-bottom:5px; }
-  .r-firma .rol { font-size:11px; font-weight:700; color:#1a2533; }
-  .r-firma .sub { font-size:10px; color:#666; }
+  .r-firma .rol { font-size:13px; font-weight:700; color:#1a2533; }
+  .r-firma .sub { font-size:12px; color:#666; }
 
-  .r-legal { text-align:center; font-size:10px; color:#94a3b8; margin-top:16px; font-style:italic; }
+  .r-legal { text-align:center; font-size:12px; color:#94a3b8; margin-top:16px; font-style:italic; }
   .r-footer {
-    text-align:center; font-size:10px; color:#64748b; margin-top:12px;
+    text-align:center; font-size:11.5px; color:#64748b; margin-top:12px;
     border-top:1px solid #e2e8f0; padding-top:8px;
   }
 
   @media print {
-    html { font-size:13px; }
+    html { font-size:15px; }
     .recibo { max-width:100%; padding:0; }
     @page { size: letter; margin: 14mm; }
   }
@@ -254,19 +254,13 @@ window.Recibos = {
       </div>
     </div>
 
-    <!-- Firmas -->
+    <!-- Firma (solo quien recibe) -->
     <div class="r-firmas">
       <div class="r-firma">
         <div class="espacio"></div>
         <div class="linea"></div>
         <div class="rol">${esc(this.EMPRESA.nombre)}</div>
-        <div class="sub">${esc(this.EMPRESA.nit)}</div>
-      </div>
-      <div class="r-firma">
-        <div class="espacio"></div>
-        <div class="linea"></div>
-        <div class="rol">${esc(d.cliente.nombre)}</div>
-        <div class="sub">Cliente</div>
+        <div class="sub">${esc(this.EMPRESA.nit)} · Recibí conforme</div>
       </div>
     </div>
 

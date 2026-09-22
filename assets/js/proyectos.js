@@ -9,6 +9,11 @@ window.Proyectos = {
   // Cache de archivos del proyecto actual (para el lightbox)
   _archivosCache: [],
 
+  // Estado de filtros/orden de la página de proyectos
+  _busqueda: '',
+  _filtroEstado: 'todos',
+  _orden: 'recientes',
+
   // Estados que implican contrato firmado
   ESTADOS_FIRMADOS: ['firmado', 'construccion', 'finalizado'],
 
@@ -25,15 +30,150 @@ window.Proyectos = {
 
     const proyectos = await DB.getAll(DB.STORES.proyectos);
     const clientes  = await DB.getAll(DB.STORES.clientes);
-    const clienteMap = Object.fromEntries(clientes.map(c => [c.id, c]));
+    this._clienteMap = Object.fromEntries(clientes.map(c => [c.id, c]));
+    this._proyectosCache = proyectos;
+
+    if (proyectos.length === 0) {
+      content.innerHTML = `<div class="fade-in">${UI.emptyState('bi-building', 'No hay proyectos', 'Los proyectos se crean desde el expediente de cada cliente')}</div>`;
+      return;
+    }
 
     content.innerHTML = `
       <div class="fade-in">
-        ${proyectos.length === 0
-          ? UI.emptyState('bi-building', 'No hay proyectos', 'Los proyectos se crean desde el expediente de cada cliente')
-          : `<div class="row g-4">${proyectos.map(p => this._proyectoCard(p, clienteMap[p.clienteId])).join('')}</div>`
-        }
+
+        <!-- Búsqueda + filtros + orden -->
+        <div class="card-app p-3 mb-4">
+          <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+            <div class="search-bar flex-grow-1" style="max-width:420px;">
+              <i class="bi bi-search text-muted"></i>
+              <input type="text" id="searchProyectos" placeholder="Buscar por modelo o cliente..." value="${UI.escapeHTML(this._busqueda)}" />
+            </div>
+            <div class="d-flex align-items-center gap-2 ms-auto">
+              <label class="text-muted small fw-semibold mb-0"><i class="bi bi-sort-down me-1"></i>Ordenar:</label>
+              <select id="ordenProyectos" class="form-select form-select-sm" style="width:auto;">
+                <option value="recientes">Más recientes</option>
+                <option value="antiguos">Más antiguos</option>
+                <option value="entrega">Fecha de entrega</option>
+                <option value="precio_desc">Precio: mayor a menor</option>
+                <option value="precio_asc">Precio: menor a mayor</option>
+                <option value="area_desc">Área: mayor a menor</option>
+                <option value="modelo">Modelo (A-Z)</option>
+              </select>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            ${this._filterPills()}
+          </div>
+        </div>
+
+        <!-- Listado -->
+        <div id="listaProyectos">
+          ${this._renderLista()}
+        </div>
       </div>`;
+
+    this._bindEventos();
+  },
+
+  // ── Pills de filtro por estado ────────────────────────────────────────────
+  _filterPills() {
+    const filtros = [
+      { key: 'todos',        label: 'Todos' },
+      { key: 'cotizacion',   label: '📝 Cotización' },
+      { key: 'firmado',      label: '🟠 Firmados' },
+      { key: 'construccion', label: '🔴 En Construcción' },
+      { key: 'finalizado',   label: '✅ Finalizados' }
+    ];
+    return filtros.map(f =>
+      `<button class="filter-pill ${this._filtroEstado === f.key ? 'active' : ''}" data-fproy="${f.key}">${f.label}</button>`
+    ).join('');
+  },
+
+  // ── Aplicar filtros + orden y renderizar tarjetas ─────────────────────────
+  _renderLista() {
+    const clienteMap = this._clienteMap || {};
+    let lista = [...(this._proyectosCache || [])];
+
+    // Filtro por estado (del cliente asociado)
+    if (this._filtroEstado !== 'todos') {
+      lista = lista.filter(p => {
+        const estado = clienteMap[p.clienteId]?.estado || 'nuevo';
+        if (this._filtroEstado === 'cotizacion') {
+          // No firmados aún (cotización)
+          return !this.ESTADOS_FIRMADOS.includes(estado);
+        }
+        return estado === this._filtroEstado;
+      });
+    }
+
+    // Búsqueda por modelo o nombre de cliente
+    if (this._busqueda) {
+      const q = this._busqueda.toLowerCase();
+      lista = lista.filter(p => {
+        const modelo = (p.modelo || '').toLowerCase();
+        const nombre = (clienteMap[p.clienteId]?.nombre || '').toLowerCase();
+        return modelo.includes(q) || nombre.includes(q);
+      });
+    }
+
+    // Ordenamiento
+    lista.sort((a, b) => {
+      switch (this._orden) {
+        case 'antiguos':    return new Date(a.createdAt) - new Date(b.createdAt);
+        case 'precio_desc': return (b.precio || 0) - (a.precio || 0);
+        case 'precio_asc':  return (a.precio || 0) - (b.precio || 0);
+        case 'area_desc':   return (b.area || 0) - (a.area || 0);
+        case 'modelo':      return (a.modelo || '').localeCompare(b.modelo || '');
+        case 'entrega': {
+          // Con fecha primero (más próxima), sin fecha al final
+          if (!a.fechaEntrega && !b.fechaEntrega) return 0;
+          if (!a.fechaEntrega) return 1;
+          if (!b.fechaEntrega) return -1;
+          return new Date(a.fechaEntrega) - new Date(b.fechaEntrega);
+        }
+        case 'recientes':
+        default:            return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+    });
+
+    if (lista.length === 0) {
+      return UI.emptyState('bi-search', 'Sin resultados',
+        this._busqueda ? 'Prueba con otra búsqueda' : 'No hay proyectos con ese filtro');
+    }
+
+    return `<div class="row g-4">${lista.map(p => this._proyectoCard(p, clienteMap[p.clienteId])).join('')}</div>`;
+  },
+
+  // ── Actualizar solo el listado (sin re-render completo) ───────────────────
+  _actualizarLista() {
+    const cont = document.getElementById('listaProyectos');
+    if (cont) cont.innerHTML = this._renderLista();
+  },
+
+  // ── Eventos de la barra de filtros ────────────────────────────────────────
+  _bindEventos() {
+    document.getElementById('searchProyectos')?.addEventListener('input', (e) => {
+      this._busqueda = e.target.value;
+      this._actualizarLista();
+    });
+
+    const ordenSel = document.getElementById('ordenProyectos');
+    if (ordenSel) {
+      ordenSel.value = this._orden;
+      ordenSel.addEventListener('change', (e) => {
+        this._orden = e.target.value;
+        this._actualizarLista();
+      });
+    }
+
+    document.querySelectorAll('[data-fproy]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this._filtroEstado = btn.dataset.fproy;
+        document.querySelectorAll('[data-fproy]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this._actualizarLista();
+      });
+    });
   },
 
   // ── Card de proyecto ──────────────────────────────────────────────────────

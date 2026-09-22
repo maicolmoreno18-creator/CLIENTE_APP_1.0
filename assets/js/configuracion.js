@@ -308,6 +308,8 @@ window.Configuracion = {
                       `}
                     </div>
 
+                    ${this._estadoBackupHTML()}
+
                     <div class="row g-3">
                       <div class="col-sm-4">
                         <button class="btn btn-outline-primary w-100 py-3 d-flex flex-column align-items-center gap-1"
@@ -925,6 +927,39 @@ window.Configuracion = {
   },
 
   // ── Exportar datos ────────────────────────────────────────────────────────
+  // ── Estado del último backup (indicador visual) ──────────────────────────
+  _estadoBackupHTML() {
+    const autoActivo = AutoSave.estaConectado && AutoSave.estaConectado();
+    const ultimo = localStorage.getItem('clienteapp_ultimo_backup');
+
+    let color, icono, texto;
+
+    if (autoActivo) {
+      color = '#10b981'; icono = 'bi-check-circle-fill';
+      texto = 'Auto-guardado en disco activo — tus datos se respaldan automáticamente.';
+    } else if (!ultimo) {
+      color = '#ef4444'; icono = 'bi-exclamation-triangle-fill';
+      texto = 'Nunca has hecho una copia de seguridad. Exporta un backup para proteger tus datos.';
+    } else {
+      const dias = Math.floor((Date.now() - new Date(ultimo).getTime()) / 86400000);
+      const cuando = dias === 0 ? 'hoy' : dias === 1 ? 'ayer' : `hace ${dias} días`;
+      if (dias >= 7) {
+        color = '#f59e0b'; icono = 'bi-clock-history';
+        texto = `Último backup: ${cuando}. Te recomendamos exportar uno nuevo.`;
+      } else {
+        color = '#10b981'; icono = 'bi-check-circle-fill';
+        texto = `Último backup: ${cuando}. Tus datos están protegidos.`;
+      }
+    }
+
+    return `
+      <div class="d-flex align-items-center gap-2 p-2 px-3 rounded-3 mb-3"
+           style="background:${color}14;border:1px solid ${color}40;">
+        <i class="bi ${icono}" style="color:${color};font-size:16px;"></i>
+        <span class="small" style="color:${color};font-weight:500;">${texto}</span>
+      </div>`;
+  },
+
   async exportarDatos() {
     // Deshabilitar botón mientras trabaja
     const btn = event?.target?.closest('button');
@@ -955,6 +990,8 @@ window.Configuracion = {
       a.download = `ClienteAPP_backup_${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
+      // Registrar fecha del último backup (para el recordatorio)
+      localStorage.setItem('clienteapp_ultimo_backup', new Date().toISOString());
       UI.toast('Backup exportado y guardado en tu computador', 'success');
     } finally {
       if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-download fs-3"></i><span class="fw-semibold small">Exportar</span><span class="text-muted" style="font-size:10px;">Backup JSON</span>'; }
