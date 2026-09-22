@@ -2,7 +2,7 @@
    ClienteAPP — Service Worker v4
    ============================================ */
 
-const CACHE_NAME    = 'clienteapp-v20';
+const CACHE_NAME    = 'clienteapp-v21';
 const CACHE_STATIC  = [
   './',
   './index.html',
@@ -33,6 +33,7 @@ const CACHE_STATIC  = [
   './assets/img/icon-192.png',
   './assets/img/icon-512.png',
   './assets/img/logo-construsoluciones.png',
+  './assets/img/sello-construsoluciones.png',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js',
   'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css'

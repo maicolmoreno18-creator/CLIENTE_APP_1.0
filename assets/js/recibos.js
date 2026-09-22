@@ -16,6 +16,9 @@ window.Recibos = {
     logo:      'assets/img/logo-construsoluciones.png'
   },
 
+  // Sello de la empresa (se estampa en el PDF sobre la firma)
+  SELLO: 'assets/img/sello-construsoluciones.png',
+
   // ── Construir los datos del recibo ────────────────────────────────────────
   // tipo: 'abono' (un abono puntual) | 'etapa' (total de la etapa)
   _buildData(pago, proyecto, cliente, abono, tipo) {
@@ -75,7 +78,8 @@ window.Recibos = {
   },
 
   // ── Generar el HTML del recibo (tamaño carta, compacto) ───────────────────
-  _buildHTML(d) {
+  // conSello: true → estampa el sello de la empresa sobre la firma (solo PDF)
+  _buildHTML(d, conSello = false) {
     const esc = _escR;
     const fmt = v => (v || v === 0)
       ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v)
@@ -166,12 +170,22 @@ window.Recibos = {
 
   /* Firma (una sola, centrada) */
   .r-firmas { display:flex; justify-content:center; margin-top:70px; }
-  .r-firma { width:320px; max-width:60%; text-align:center; }
+  .r-firma { width:320px; max-width:60%; text-align:center; position:relative; }
   /* Espacio real para firmar a mano encima de la línea */
   .r-firma .espacio { height:60px; }
   .r-firma .linea { border-top:1.5px solid #1a2533; margin-bottom:5px; }
   .r-firma .rol { font-size:13px; font-weight:700; color:#1a2533; }
   .r-firma .sub { font-size:12px; color:#666; }
+  /* Sello de la empresa (solo en PDF) — efecto estampado */
+  .r-firma .sello {
+    position:absolute;
+    top:-18px; left:50%;
+    transform:translateX(-50%) rotate(-7deg);
+    width:200px; height:auto;
+    opacity:0.78;
+    mix-blend-mode:multiply;
+    pointer-events:none;
+  }
 
   .r-legal { text-align:center; font-size:12px; color:#94a3b8; margin-top:16px; font-style:italic; }
   .r-footer {
@@ -257,6 +271,7 @@ window.Recibos = {
     <!-- Firma (solo quien recibe) -->
     <div class="r-firmas">
       <div class="r-firma">
+        ${conSello ? `<img class="sello" src="${this.SELLO}" alt="Sello" onerror="this.style.display='none'" />` : ''}
         <div class="espacio"></div>
         <div class="linea"></div>
         <div class="rol">${esc(this.EMPRESA.nombre)}</div>
@@ -301,7 +316,7 @@ window.Recibos = {
     const abono = (ctx.pago.abonos || []).find(a => a.id === abonoId);
     if (!abono) { UI.toast('No se encontró el abono', 'danger'); return; }
     const data = this._buildData(ctx.pago, ctx.proyecto, ctx.cliente, abono, 'abono');
-    await this._descargarPDF(this._buildHTML(data), data);
+    await this._descargarPDF(this._buildHTML(data, true), data); // con sello
   },
 
   // ── Imprimir recibo de la ETAPA (total abonado) ───────────────────────────
@@ -324,7 +339,7 @@ window.Recibos = {
       return;
     }
     const data = this._buildData(ctx.pago, ctx.proyecto, ctx.cliente, null, 'etapa');
-    await this._descargarPDF(this._buildHTML(data), data);
+    await this._descargarPDF(this._buildHTML(data, true), data); // con sello
   },
 
   // ── Motor de impresión (ventana emergente) ────────────────────────────────
@@ -378,8 +393,21 @@ window.Recibos = {
         if (iframe.contentDocument.readyState === 'complete') resolve();
         else { iframe.onload = resolve; setTimeout(resolve, 1200); }
       });
-      // Esperar a que el logo cargue dentro del iframe
-      await new Promise(r => setTimeout(r, 450));
+      // Esperar a que TODAS las imágenes (logo + sello) carguen dentro del iframe
+      await new Promise(resolve => {
+        const imgs = [...iframe.contentDocument.images];
+        if (imgs.length === 0) { resolve(); return; }
+        let pendientes = imgs.filter(img => !img.complete).length;
+        if (pendientes === 0) { resolve(); return; }
+        const listo = () => { pendientes--; if (pendientes <= 0) resolve(); };
+        imgs.forEach(img => {
+          if (img.complete) return;
+          img.addEventListener('load', listo, { once: true });
+          img.addEventListener('error', listo, { once: true });
+        });
+        setTimeout(resolve, 2500); // fallback por si alguna imagen no dispara evento
+      });
+      await new Promise(r => setTimeout(r, 200)); // pequeño margen de render
 
       const canvas = await html2canvas(iframe.contentDocument.body, {
         scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff',
