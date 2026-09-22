@@ -657,7 +657,7 @@
     <div class="modal-dialog modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header" style="background:linear-gradient(135deg,#4a2e1a,#8a5a2d); color:white;">
-          <h5 class="modal-title"><i class="bi bi-cash me-2"></i>Registrar Pago</h5>
+          <h5 class="modal-title" id="modalPagoTitle"><i class="bi bi-cash me-2"></i>Registrar Pago</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
@@ -666,13 +666,36 @@
             <input type="hidden" id="pagoClienteId" />
             <input type="hidden" id="pagoEtapa" />
             <input type="hidden" id="pagoValorTotal" />
+            <input type="hidden" id="pagoYaPagado" />
             <div class="row g-3">
               <div class="col-12">
                 <label class="form-label fw-semibold">Etapa de Pago</label>
                 <input type="text" class="form-control" id="pagoEtapaNombre" readonly />
               </div>
+
+              <!-- Resumen del estado actual de la etapa -->
+              <div class="col-12">
+                <div class="d-flex flex-wrap gap-2" id="pagoResumenActual">
+                  <!-- Se llena dinámicamente: Ya pagado / Falta / Total -->
+                </div>
+              </div>
+
+              <!-- Selector de modo: Agregar abono vs Corregir total -->
+              <div class="col-12">
+                <div class="btn-group w-100" role="group" aria-label="Modo de registro">
+                  <input type="radio" class="btn-check" name="pagoModo" id="pagoModoAbono" value="abono" checked>
+                  <label class="btn btn-outline-success" for="pagoModoAbono">
+                    <i class="bi bi-plus-circle me-1"></i>Agregar abono
+                  </label>
+                  <input type="radio" class="btn-check" name="pagoModo" id="pagoModoCorregir" value="corregir">
+                  <label class="btn btn-outline-secondary" for="pagoModoCorregir">
+                    <i class="bi bi-pencil-square me-1"></i>Corregir total
+                  </label>
+                </div>
+              </div>
+
               <div class="col-md-6">
-                <label class="form-label fw-semibold">Valor Pagado *</label>
+                <label class="form-label fw-semibold" id="pagoValorLabel">Abono a registrar *</label>
                 <div class="input-group">
                   <span class="input-group-text">$</span>
                   <input type="number" class="form-control" id="pagoValor" required placeholder="0" min="0" />
@@ -683,6 +706,33 @@
                 <label class="form-label fw-semibold">Fecha de Pago *</label>
                 <input type="date" class="form-control" id="pagoFecha" required />
               </div>
+
+              <!-- Método de pago (para el historial de abonos) -->
+              <div class="col-md-6" id="pagoMetodoGroup">
+                <label class="form-label fw-semibold">Método de pago</label>
+                <select class="form-select" id="pagoMetodo">
+                  <option value="Efectivo">💵 Efectivo</option>
+                  <option value="Transferencia">🏦 Transferencia</option>
+                  <option value="Consignación">🧾 Consignación</option>
+                  <option value="Nequi / Daviplata">📱 Nequi / Daviplata</option>
+                  <option value="Cheque">📝 Cheque</option>
+                  <option value="Otro">➕ Otro</option>
+                </select>
+              </div>
+
+              <!-- Vista previa del nuevo total tras el abono -->
+              <div class="col-12">
+                <div class="alert alert-info py-2 px-3 mb-0 d-flex align-items-center gap-2" id="pagoPreview" style="display:none !important;">
+                  <i class="bi bi-calculator flex-shrink-0"></i>
+                  <span id="pagoPreviewText" class="small"></span>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-semibold">Nota del abono</label>
+                <input type="text" class="form-control" id="pagoNotaAbono" placeholder="Ej: N° transferencia, quién pagó, referencia..." />
+              </div>
+
               <div class="col-12">
                 <label class="form-label fw-semibold">Estado</label>
                 <select class="form-select" id="pagoEstado">
@@ -690,10 +740,20 @@
                   <option value="parcial">🔄 Pago Parcial</option>
                   <option value="pagado">✅ Pagado Completo</option>
                 </select>
+                <div class="form-text">El estado se calcula automáticamente según el total pagado.</div>
               </div>
+
+              <!-- Historial de abonos de esta etapa -->
+              <div class="col-12" id="pagoHistorialGroup" style="display:none;">
+                <label class="form-label fw-semibold">
+                  <i class="bi bi-clock-history me-1 text-secondary"></i>Historial de abonos
+                </label>
+                <div id="pagoHistorialLista" class="d-flex flex-column gap-2"></div>
+              </div>
+
               <div class="col-12">
-                <label class="form-label fw-semibold">Observaciones</label>
-                <textarea class="form-control" id="pagoObservaciones" rows="3" placeholder="Método de pago, número de transferencia, notas..."></textarea>
+                <label class="form-label fw-semibold">Observaciones generales</label>
+                <textarea class="form-control" id="pagoObservaciones" rows="2" placeholder="Notas generales de la etapa..."></textarea>
               </div>
             </div>
           </form>
@@ -1226,6 +1286,8 @@
   <script src="assets/vendor/html2canvas.min.js"></script>
   <!-- Módulo de impresión y PDF de especificaciones -->
   <script src="assets/js/print.js"></script>
+  <!-- Módulo de recibos de pago -->
+  <script src="assets/js/recibos.js"></script>
   <script src="assets/js/app.js"></script>
 
   <script>

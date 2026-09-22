@@ -404,6 +404,12 @@ window.Pagos = {
                          border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;white-space:nowrap;">
               ${cfg.label}
             </span>
+            ${(p.valorPagado > 0) ? `
+            <button class="btn btn-sm btn-outline-secondary fw-semibold"
+                    style="border-radius:8px;font-size:11px;padding:4px 9px;white-space:nowrap;"
+                    onclick="Recibos.imprimirEtapa('${p.id}')" title="Recibo de la etapa">
+              <i class="bi bi-receipt"></i>
+            </button>` : ''}
             <button class="btn btn-sm fw-semibold"
                     style="border-radius:8px;background:${cfg.color};color:white;border:none;
                            font-size:11px;padding:4px 10px;white-space:nowrap;"
@@ -432,10 +438,15 @@ window.Pagos = {
           </div>
         </div>
 
-        ${p.fecha ? `
-        <div class="mt-1" style="font-size:10px;color:#94a3b8;">
-          <i class="bi bi-calendar-check me-1"></i>${UI.formatDate(p.fecha)}
-        </div>` : ''}
+        ${(() => {
+          const nAbonos = Array.isArray(p.abonos) ? p.abonos.length : 0;
+          const partes = [];
+          if (p.fecha) partes.push(`<i class="bi bi-calendar-check me-1"></i>${UI.formatDate(p.fecha)}`);
+          if (nAbonos > 0) partes.push(`<i class="bi bi-clock-history me-1"></i>${nAbonos} abono${nAbonos !== 1 ? 's' : ''}`);
+          return partes.length
+            ? `<div class="mt-1 d-flex gap-3 flex-wrap" style="font-size:10px;color:#94a3b8;">${partes.map(x => `<span>${x}</span>`).join('')}</div>`
+            : '';
+        })()}
       </div>`;
   },
 
@@ -444,34 +455,57 @@ window.Pagos = {
     const p = await DB.get(DB.STORES.pagos, pagoId);
     if (!p) return;
 
+    const yaPagado  = p.valorPagado || 0;
+    const total     = p.valorTotal || 0;
+    const falta     = Math.max(0, total - yaPagado);
+
     document.getElementById('pagoId').value            = p.id;
     document.getElementById('pagoClienteId').value     = p.clienteId;
     document.getElementById('pagoEtapa').value         = p.etapa;
     document.getElementById('pagoEtapaNombre').value   = p.etapaLabel;
-    document.getElementById('pagoValorTotal').value    = p.valorTotal || 0;
-    document.getElementById('pagoValor').value         = p.valorPagado || '';
-    document.getElementById('pagoValor').max           = p.valorTotal || '';
+    document.getElementById('pagoValorTotal').value    = total;
+    document.getElementById('pagoYaPagado').value      = yaPagado;
     document.getElementById('pagoFecha').value         = p.fecha ? p.fecha.split('T')[0] : new Date().toISOString().split('T')[0];
     document.getElementById('pagoEstado').value        = p.estado || 'pendiente';
     document.getElementById('pagoObservaciones').value = p.observaciones || '';
 
-    // Mostrar hint con el máximo permitido
-    const hint = document.getElementById('pagoValorHint');
-    if (hint && p.valorTotal) {
-      hint.innerHTML = `<i class="bi bi-info-circle me-1 text-primary"></i>
-        Máximo permitido: <strong>${UI.formatCurrency(p.valorTotal)}</strong>`;
+    // Reset de campos del abono nuevo
+    document.getElementById('pagoMetodo').value    = 'Efectivo';
+    document.getElementById('pagoNotaAbono').value = '';
+
+    // Renderizar historial de abonos ya registrados
+    this._renderHistorialAbonos(p);
+
+    // Resumen visual del estado actual de la etapa
+    const resumen = document.getElementById('pagoResumenActual');
+    if (resumen) {
+      resumen.innerHTML = `
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2" style="font-size:12px;">
+          Ya pagado: <strong>${UI.formatCurrency(yaPagado)}</strong>
+        </span>
+        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2" style="font-size:12px;">
+          Falta: <strong>${UI.formatCurrency(falta)}</strong>
+        </span>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2" style="font-size:12px;">
+          Total etapa: <strong>${UI.formatCurrency(total)}</strong>
+        </span>`;
     }
 
-    // Actualizar estado automáticamente al cambiar el valor
-    const inputValor  = document.getElementById('pagoValor');
-    const selectEstado = document.getElementById('pagoEstado');
-    inputValor.oninput = () => {
-      const v = parseFloat(inputValor.value) || 0;
-      const t = parseFloat(p.valorTotal) || 0;
-      if (v <= 0)    selectEstado.value = 'pendiente';
-      else if (v >= t) selectEstado.value = 'pagado';
-      else           selectEstado.value = 'parcial';
-    };
+    // Título dinámico: registrar (sin pagos) o agregar abono (con pagos previos)
+    const titulo = document.getElementById('modalPagoTitle');
+    if (titulo) {
+      titulo.innerHTML = yaPagado > 0
+        ? '<i class="bi bi-plus-circle me-2"></i>Agregar Abono'
+        : '<i class="bi bi-cash me-2"></i>Registrar Pago';
+    }
+
+    // Modo por defecto: agregar abono. El campo empieza vacío (solo lo nuevo).
+    document.getElementById('pagoModoAbono').checked = true;
+    document.getElementById('pagoModoCorregir').checked = false;
+    document.getElementById('pagoValor').value = '';
+
+    // Configurar comportamiento del modal según el modo elegido
+    this._configurarModoPago(p);
 
     // Si el expediente está abierto, cerrarlo primero para evitar modales apilados
     const expedienteEl = document.getElementById('modalExpediente');
@@ -489,23 +523,184 @@ window.Pagos = {
     }
   },
 
-  // ── Guardar pago ──────────────────────────────────────────────────────────
-  async guardar() {
-    const id         = document.getElementById('pagoId').value;
-    const valor      = parseFloat(document.getElementById('pagoValor').value);
-    const fecha      = document.getElementById('pagoFecha').value;
-    const estado     = document.getElementById('pagoEstado').value;
-    const valorTotal = parseFloat(document.getElementById('pagoValorTotal').value) || 0;
+  // ── Renderizar historial de abonos en el modal ───────────────────────────
+  _renderHistorialAbonos(p) {
+    const group = document.getElementById('pagoHistorialGroup');
+    const lista = document.getElementById('pagoHistorialLista');
+    if (!group || !lista) return;
 
-    if (!valor || !fecha) {
-      UI.toast('Valor y fecha son obligatorios', 'warning');
+    const abonos = Array.isArray(p.abonos) ? p.abonos : [];
+    if (abonos.length === 0) {
+      group.style.display = 'none';
+      lista.innerHTML = '';
       return;
     }
 
-    // Limitante: no permitir pagar más del total de la etapa
-    if (valorTotal > 0 && valor > valorTotal) {
+    group.style.display = '';
+    // Más recientes primero
+    const ordenados = [...abonos].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    lista.innerHTML = ordenados.map(ab => `
+      <div class="d-flex align-items-center justify-content-between gap-2 p-2 rounded-3"
+           style="background:#f8fafc;border:1px solid #e8edf2;">
+        <div class="min-w-0">
+          <div class="fw-semibold small">${UI.formatCurrency(ab.monto)}
+            <span class="badge bg-light text-secondary border ms-1" style="font-size:10px;">${UI.escapeHTML(ab.metodo || 'Pago')}</span>
+          </div>
+          <div class="text-muted" style="font-size:11px;">
+            <i class="bi bi-calendar-event me-1"></i>${UI.formatDate(ab.fecha)}
+            ${ab.nota ? ` · ${UI.escapeHTML(ab.nota)}` : ''}
+          </div>
+        </div>
+        <div class="d-flex gap-1 flex-shrink-0">
+          <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2"
+                  onclick="Recibos.imprimirAbono('${p.id}', '${ab.id}')" title="Imprimir recibo">
+            <i class="bi bi-printer" style="font-size:11px;"></i>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2"
+                  onclick="Recibos.descargarAbonoPDF('${p.id}', '${ab.id}')" title="Descargar recibo PDF">
+            <i class="bi bi-file-earmark-pdf" style="font-size:11px;"></i>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2"
+                  onclick="Pagos.eliminarAbono('${p.id}', '${ab.id}')" title="Eliminar este abono">
+            <i class="bi bi-trash" style="font-size:11px;"></i>
+          </button>
+        </div>
+      </div>`).join('');
+  },
+
+  // ── Eliminar un abono individual del historial ────────────────────────────
+  async eliminarAbono(pagoId, abonoId) {
+    const p = await DB.get(DB.STORES.pagos, pagoId);
+    if (!p || !Array.isArray(p.abonos)) return;
+
+    const abono = p.abonos.find(a => a.id === abonoId);
+    if (!abono) return;
+
+    const ok = await UI.confirm(
+      `¿Eliminar el abono de <strong>${UI.formatCurrency(abono.monto)}</strong> del ${UI.formatDate(abono.fecha)}?`,
+      'Eliminar abono'
+    );
+    if (!ok) return;
+
+    // Quitar el abono y recalcular el total pagado desde el historial
+    p.abonos = p.abonos.filter(a => a.id !== abonoId);
+    p.valorPagado = p.abonos.reduce((s, a) => s + (a.monto || 0), 0);
+    p.estado = this._calcularEstado(p.valorPagado, p.valorTotal || 0);
+    // La fecha de la etapa pasa a ser la del abono más reciente restante
+    p.fecha = p.abonos.length > 0
+      ? [...p.abonos].sort((a, b) => new Date(b.fecha) - new Date(a.fecha))[0].fecha
+      : null;
+
+    await DB.put(DB.STORES.pagos, p);
+    UI.toast('Abono eliminado', 'danger');
+
+    // Refrescar el modal con los datos actualizados
+    await this.abrirModalPago(pagoId);
+    App.updateBadges();
+    if (App.currentPage === 'pagos')     await Pagos.render();
+    if (App.currentPage === 'dashboard') await Dashboard.render();
+  },
+
+  // ── Configurar el comportamiento del modal según el modo (abono/corregir) ──
+  _configurarModoPago(p) {
+    const yaPagado = parseFloat(document.getElementById('pagoYaPagado').value) || 0;
+    const total    = parseFloat(document.getElementById('pagoValorTotal').value) || 0;
+    const inputValor   = document.getElementById('pagoValor');
+    const label        = document.getElementById('pagoValorLabel');
+    const hint         = document.getElementById('pagoValorHint');
+    const preview      = document.getElementById('pagoPreview');
+    const previewText  = document.getElementById('pagoPreviewText');
+    const selectEstado = document.getElementById('pagoEstado');
+    const radioAbono    = document.getElementById('pagoModoAbono');
+    const radioCorregir = document.getElementById('pagoModoCorregir');
+
+    // Calcula el total resultante y actualiza preview + estado automático
+    const recalcular = () => {
+      const modo = radioCorregir.checked ? 'corregir' : 'abono';
+      const v = parseFloat(inputValor.value) || 0;
+      const nuevoTotal = modo === 'abono' ? (yaPagado + v) : v;
+
+      // Estado automático según el nuevo total pagado
+      selectEstado.value = this._calcularEstado(nuevoTotal, total);
+
+      // Preview
+      if (v > 0 || modo === 'corregir') {
+        preview.style.setProperty('display', 'flex', 'important');
+        if (modo === 'abono') {
+          previewText.innerHTML =
+            `Ya pagado <strong>${UI.formatCurrency(yaPagado)}</strong> ` +
+            `+ abono <strong>${UI.formatCurrency(v)}</strong> = ` +
+            `nuevo total pagado <strong>${UI.formatCurrency(nuevoTotal)}</strong> de ${UI.formatCurrency(total)}`;
+        } else {
+          previewText.innerHTML =
+            `Total pagado corregido a <strong>${UI.formatCurrency(nuevoTotal)}</strong> de ${UI.formatCurrency(total)}`;
+        }
+      } else {
+        preview.style.setProperty('display', 'none', 'important');
+      }
+    };
+
+    // Ajusta labels/valores al cambiar de modo
+    const aplicarModo = () => {
+      if (radioCorregir.checked) {
+        label.textContent = 'Total pagado (corregir) *';
+        inputValor.value = yaPagado || '';
+        hint.innerHTML = `<i class="bi bi-info-circle me-1 text-secondary"></i>
+          Escribe el <strong>total acumulado</strong> correcto para esta etapa (máx. ${UI.formatCurrency(total)}).`;
+      } else {
+        label.textContent = 'Abono a registrar *';
+        inputValor.value = '';
+        const falta = Math.max(0, total - yaPagado);
+        hint.innerHTML = `<i class="bi bi-info-circle me-1 text-success"></i>
+          Escribe solo el <strong>monto nuevo</strong> que ingresa. Falta ${UI.formatCurrency(falta)} para completar.`;
+      }
+      recalcular();
+    };
+
+    // Enlazar eventos (se re-asignan en cada apertura, sin acumular)
+    inputValor.oninput   = recalcular;
+    radioAbono.onchange  = aplicarModo;
+    radioCorregir.onchange = aplicarModo;
+
+    // Estado inicial
+    aplicarModo();
+  },
+
+  // ── Guardar pago ──────────────────────────────────────────────────────────
+  async guardar() {
+    const id         = document.getElementById('pagoId').value;
+    const ingresado  = parseFloat(document.getElementById('pagoValor').value);
+    const fecha      = document.getElementById('pagoFecha').value;
+    const valorTotal = parseFloat(document.getElementById('pagoValorTotal').value) || 0;
+    const yaPagado   = parseFloat(document.getElementById('pagoYaPagado').value) || 0;
+    const modo       = document.getElementById('pagoModoCorregir').checked ? 'corregir' : 'abono';
+
+    if (isNaN(ingresado) || !fecha) {
+      UI.toast('Valor y fecha son obligatorios', 'warning');
+      return;
+    }
+    if (ingresado < 0) {
+      UI.toast('El valor no puede ser negativo', 'warning');
+      return;
+    }
+
+    // Calcular el nuevo total pagado según el modo
+    // - abono: suma lo nuevo a lo ya pagado
+    // - corregir: reemplaza el total pagado por lo ingresado
+    const nuevoValorPagado = modo === 'abono' ? (yaPagado + ingresado) : ingresado;
+
+    if (modo === 'abono' && ingresado === 0) {
+      UI.toast('El abono debe ser mayor a 0. Usa "Corregir total" si quieres ajustar el valor.', 'warning', 6000);
+      return;
+    }
+
+    // Limitante: no permitir que el total pagado supere el total de la etapa
+    if (valorTotal > 0 && nuevoValorPagado > valorTotal) {
+      const disponible = Math.max(0, valorTotal - yaPagado);
       UI.toast(
-        `El máximo para esta etapa es ${UI.formatCurrency(valorTotal)}. No puedes registrar más.`,
+        modo === 'abono'
+          ? `Ese abono supera lo que falta. Máximo abono permitido: ${UI.formatCurrency(disponible)}.`
+          : `El total de esta etapa es ${UI.formatCurrency(valorTotal)}. No puedes registrar más.`,
         'warning', 6000
       );
       return;
@@ -514,9 +709,24 @@ window.Pagos = {
     const existing = await DB.get(DB.STORES.pagos, id);
     if (!existing) return;
 
-    existing.valorPagado   = valor;
+    // Asegurar que exista el array de historial (compatibilidad con datos previos)
+    if (!Array.isArray(existing.abonos)) existing.abonos = [];
+
+    if (modo === 'abono') {
+      // Registrar el abono en el historial
+      existing.abonos.push({
+        id:     DB.generateId(),
+        monto:  ingresado,
+        fecha,
+        metodo: document.getElementById('pagoMetodo').value || 'Efectivo',
+        nota:   document.getElementById('pagoNotaAbono').value.trim()
+      });
+    }
+    // En modo "corregir" NO se agrega al historial: es un ajuste del total.
+
+    existing.valorPagado   = nuevoValorPagado;
     existing.fecha         = fecha;
-    existing.estado        = estado;
+    existing.estado        = this._calcularEstado(nuevoValorPagado, valorTotal);
     existing.observaciones = document.getElementById('pagoObservaciones').value.trim();
 
     await DB.put(DB.STORES.pagos, existing);
@@ -527,9 +737,12 @@ window.Pagos = {
     UI.closeModal('modalPago');
 
     const etapaLabel = existing.etapaLabel;
-    UI.toast(`Pago registrado: ${etapaLabel}`, 'cash');
+    const msgAbono = modo === 'abono'
+      ? `Abono de ${UI.formatCurrency(ingresado)} registrado en "${etapaLabel}"`
+      : `Total de "${etapaLabel}" corregido a ${UI.formatCurrency(nuevoValorPagado)}`;
+    UI.toast(msgAbono, 'cash');
 
-    if (estado === 'pagado') {
+    if (existing.estado === 'pagado') {
       setTimeout(() => UI.toast(`Etapa "${etapaLabel}" completada al 100%`, 'success', 5000), 600);
     }
 
