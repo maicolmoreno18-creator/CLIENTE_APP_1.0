@@ -2,7 +2,7 @@
    ClienteAPP — Service Worker v4
    ============================================ */
 
-const CACHE_NAME    = 'clienteapp-v11';
+const CACHE_NAME    = 'clienteapp-v12';
 const CACHE_STATIC  = [
   './',
   './index.html',

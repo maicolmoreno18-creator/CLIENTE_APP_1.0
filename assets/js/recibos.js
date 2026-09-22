@@ -165,8 +165,10 @@ window.Recibos = {
   .box.saldo { background:#fffbeb; } .box.saldo .n { color:#d97706; }
 
   /* Firmas */
-  .r-firmas { display:flex; justify-content:space-between; gap:40px; margin-top:34px; }
+  .r-firmas { display:flex; justify-content:space-between; gap:50px; margin-top:80px; }
   .r-firma { flex:1; text-align:center; }
+  /* Espacio real para firmar a mano encima de la línea */
+  .r-firma .espacio { height:70px; }
   .r-firma .linea { border-top:1.5px solid #1a2533; margin-bottom:5px; }
   .r-firma .rol { font-size:11px; font-weight:700; color:#1a2533; }
   .r-firma .sub { font-size:10px; color:#666; }
@@ -255,11 +257,13 @@ window.Recibos = {
     <!-- Firmas -->
     <div class="r-firmas">
       <div class="r-firma">
+        <div class="espacio"></div>
         <div class="linea"></div>
         <div class="rol">${esc(this.EMPRESA.nombre)}</div>
         <div class="sub">${esc(this.EMPRESA.nit)}</div>
       </div>
       <div class="r-firma">
+        <div class="espacio"></div>
         <div class="linea"></div>
         <div class="rol">${esc(d.cliente.nombre)}</div>
         <div class="sub">Cliente</div>
